@@ -12,7 +12,7 @@
 
 [简体中文](./README.zh-CN.md) | [English](./README.md)
 
-[Features](#features) • [Getting Started](#getting-started) • [Usage](#usage) • [Documentation](https://rncg5jvpme.feishu.cn/docx/IRuad1eUIo8qLoxxwAGcZvqJnDb) • [Contributing](#contributing) • [License](#license)
+[Features](#features) • [Getting Started](#getting-started) • [Usage](#usage) • [Documentation](https://docs.easy-dataset.com/ed/en) • [Contributing](#contributing) • [License](#license)
 
 </div>
 
@@ -277,7 +277,7 @@ Please make sure to update tests as appropriate and adhere to the existing codin
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL 3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Star History
 

@@ -30,7 +30,11 @@ export async function GET(request, { params }) {
 
     const text = buffer.toString('utf-8');
 
-    return NextResponse.json({ fileName: fileInfo.fileName, content: text });
+    return NextResponse.json({
+      fileId: fileId,
+      fileName: fileInfo.fileName,
+      content: text
+    });
   } catch (error) {
     console.error('Failed to get text block content:', error);
     return NextResponse.json({ error: error.message || 'Failed to get text block content' }, { status: 500 });

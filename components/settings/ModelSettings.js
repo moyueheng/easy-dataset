@@ -493,7 +493,7 @@ export default function ModelSettings({ projectId }) {
                 />
               </FormControl>
               <Button variant="contained" onClick={() => refreshProviderModels()} sx={{ ml: 2 }}>
-                刷新模型列表
+                {t('models.refresh')}
               </Button>
             </Grid>
             {/* 新增：视觉模型选择项 */}

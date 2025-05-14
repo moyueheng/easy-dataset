@@ -7,6 +7,7 @@ const url = require('url');
 const { updateDatabase } = require('./db-updater');
 const { getAppVersion } = require('./util');
 const { promises: fsPromises } = require('fs');
+const os = require('os');
 
 function setupLogging() {
   const logDir = path.join(app.getPath('userData'), 'logs');
@@ -176,48 +177,48 @@ async function clearCache() {
 function createMenu() {
   const template = [
     {
-      label: '文件',
-      submenu: [{ role: 'quit', label: '退出' }]
+      label: 'File',
+      submenu: [{ role: 'quit', label: 'Quit' }]
     },
     {
-      label: '编辑',
+      label: 'Edit',
       submenu: [
-        { role: 'undo', label: '撤销' },
-        { role: 'redo', label: '重做' },
+        { role: 'undo', label: 'Undo' },
+        { role: 'redo', label: 'Redo' },
         { type: 'separator' },
-        { role: 'cut', label: '剪切' },
-        { role: 'copy', label: '复制' },
-        { role: 'paste', label: '粘贴' }
+        { role: 'cut', label: 'Cut' },
+        { role: 'copy', label: 'Copy' },
+        { role: 'paste', label: 'Paste' }
       ]
     },
     {
-      label: '视图',
+      label: 'View',
       submenu: [
-        { role: 'reload', label: '刷新' },
+        { role: 'reload', label: 'Refresh' },
         { type: 'separator' },
-        { role: 'resetzoom', label: '重置缩放' },
-        { role: 'zoomin', label: '放大' },
-        { role: 'zoomout', label: '缩小' },
+        { role: 'resetzoom', label: 'Reset Zoom' },
+        { role: 'zoomin', label: 'Zoom In' },
+        { role: 'zoomout', label: 'Zoom Out' },
         { type: 'separator' },
-        { role: 'togglefullscreen', label: '全屏' }
+        { role: 'togglefullscreen', label: 'Fullscreen' }
       ]
     },
     {
-      label: '帮助',
+      label: 'Help',
       submenu: [
         {
-          label: '关于',
+          label: 'About',
           click: () => {
             dialog.showMessageBox(mainWindow, {
-              title: '关于 Easy Dataset',
+              title: 'About Easy Dataset',
               message: `Easy Dataset v${getAppVersion()}`,
-              detail: '一个用于创建大模型微调数据集的应用程序。',
-              buttons: ['确定']
+              detail: 'An application for creating fine-tuning datasets for large models.',
+              buttons: ['OK']
             });
           }
         },
         {
-          label: '访问 GitHub',
+          label: 'Visit GitHub',
           click: () => {
             shell.openExternal('https://github.com/ConardLi/easy-dataset');
           }
@@ -226,11 +227,11 @@ function createMenu() {
     },
     ,
     {
-      label: '更多',
+      label: 'More',
       submenu: [
-        { role: 'toggledevtools', label: '开发者工具' },
+        { role: 'toggledevtools', label: 'Developer Tools' },
         {
-          label: '打开日志目录',
+          label: 'Open Logs Directory',
           click: () => {
             const logsDir = path.join(app.getPath('userData'), 'logs');
             if (!fs.existsSync(logsDir)) {
@@ -240,7 +241,7 @@ function createMenu() {
           }
         },
         {
-          label: '打开数据目录',
+          label: 'Open Data Directory',
           click: () => {
             const dataDir = path.join(app.getPath('userData'), 'local-db');
             if (!fs.existsSync(dataDir)) {
@@ -250,30 +251,41 @@ function createMenu() {
           }
         },
         {
-          label: '清除缓存',
+          label: 'Open Data Directory (History)',
+          click: () => {
+            const dataDir = path.join(os.homedir(), '.easy-dataset-db');
+            if (!fs.existsSync(dataDir)) {
+              fs.mkdirSync(dataDir, { recursive: true });
+            }
+            shell.openPath(dataDir);
+          }
+        },
+        {
+          label: 'Clear Cache',
           click: async () => {
             try {
               const response = await dialog.showMessageBox(mainWindow, {
                 type: 'question',
-                buttons: ['取消', '确认'],
+                buttons: ['Cancel', 'Confirm'],
                 defaultId: 1,
-                title: '清除缓存',
-                message: '确定要清除缓存吗？',
-                detail: '这将删除日志目录下的所有文件以及本地数据库缓存文件（不包括主数据库文件）。'
+                title: 'Clear Cache',
+                message: 'Are you sure you want to clear the cache?',
+                detail:
+                  'This will delete all files in the logs directory and local database cache files (excluding main database files).'
               });
 
               if (response.response === 1) {
-                // 用户点击了确认
+                // User clicked confirm
                 await clearCache();
                 dialog.showMessageBox(mainWindow, {
                   type: 'info',
-                  title: '清除成功',
-                  message: '缓存已成功清除'
+                  title: 'Cleared Successfully',
+                  message: 'Cache has been cleared successfully'
                 });
               }
             } catch (error) {
-              global.appLog(`清除缓存失败: ${error.message}`, 'error');
-              dialog.showErrorBox('清除缓存失败', error.message);
+              global.appLog(`Failed to clear cache: ${error.message}`, 'error');
+              dialog.showErrorBox('Failed to clear cache', error.message);
             }
           }
         }

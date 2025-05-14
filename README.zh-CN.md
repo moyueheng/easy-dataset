@@ -12,7 +12,7 @@
 
 [简体中文](./README.zh-CN.md) | [English](./README.md)
 
-[功能特点](#功能特点) • [快速开始](#本地运行) • [使用文档](https://rncg5jvpme.feishu.cn/wiki/NT7aw7rBfi8HwukHaUTcvrQIn6f) • [贡献](#贡献) • [许可证](#许可证)
+[功能特点](#功能特点) • [快速开始](#本地运行) • [使用文档](https://docs.easy-dataset.com/) • [贡献](#贡献) • [许可证](#许可证)
 
 </div>
 
@@ -275,7 +275,7 @@ easy-dataset/
 
 ## 许可证
 
-本项目采用 Apache License 2.0 许可证 - 有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
+本项目采用 AGPL 3.0 许可证 - 有关详细信息，请参阅 [LICENSE](LICENSE) 文件。
 
 ## Star History
 
