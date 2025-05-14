@@ -1,5 +1,5 @@
-# 使用Node.js 22作为基础镜像，esmExternals配置从Node.js 22 才支持所以升级一下基础环境 
-FROM node:22
+# 使用Node.js 20作为基础镜像
+FROM node:20
 
 # 设置工作目录
 WORKDIR /app
