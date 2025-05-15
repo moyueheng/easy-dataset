@@ -20,18 +20,21 @@ export async function GET(request, { params }) {
     const tag = searchParams.get('tag');
     const input = searchParams.get('input');
     const tagsOnly = searchParams.get('tagsOnly') === 'true';
+    const isDistill = searchParams.get('isDistill') === 'true';
+
+    console.log('[questions/tree] 请求参数:', { projectId, tag, input, tagsOnly, isDistill });
 
     if (tag) {
       // 获取指定标签的问题数据（包含完整字段）
-      const questions = await getQuestionsByTag(projectId, tag, input);
+      const questions = await getQuestionsByTag(projectId, tag, input, isDistill);
       return NextResponse.json(questions);
     } else if (tagsOnly) {
       // 只获取标签信息（仅包含 id 和 label 字段）
-      const treeData = await getQuestionsForTree(projectId, input);
+      const treeData = await getQuestionsForTree(projectId, input, isDistill);
       return NextResponse.json(treeData);
     } else {
       // 兼容原有请求，获取树形视图数据（仅包含 id 和 label 字段）
-      const treeData = await getQuestionsForTree(projectId);
+      const treeData = await getQuestionsForTree(projectId, null, isDistill);
       return NextResponse.json(treeData);
     }
   } catch (error) {

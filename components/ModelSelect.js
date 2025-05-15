@@ -121,7 +121,7 @@ export default function ModelSelect({ size = 'small', minWidth = 180, projectId,
           })
           .map(model => (
             <MenuItem key={model.id} value={model.id}>
-              {model.providerName}: {model.modelName}
+              {model.modelName}
             </MenuItem>
           ))}
       </Select>

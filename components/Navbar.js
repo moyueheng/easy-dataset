@@ -206,6 +206,12 @@ export default function Navbar({ projects = [], currentProject }) {
                 href={`/projects/${selectedProject}/text-split`}
               />
               <Tab
+                label={t('distill.title')}
+                value={`/projects/${selectedProject}/distill`}
+                component={Link}
+                href={`/projects/${selectedProject}/distill`}
+              />
+              <Tab
                 label={t('questions.title')}
                 value={`/projects/${selectedProject}/questions`}
                 component={Link}
