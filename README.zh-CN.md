@@ -42,7 +42,8 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
 
 ## 快速演示
 
-<video src="https://raw.githubusercontent.com/ConardLi/static/main/video/ed.mp4" controls width="640" autoplay muted loop></video>
+
+https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 
 ## 本地运行
 
