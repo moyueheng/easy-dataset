@@ -13,11 +13,16 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
   Alert,
   Paper,
-  useTheme
+  useTheme,
+  Tooltip
 } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -37,6 +42,69 @@ export default function MigrationDialog({ open, onClose, projectIds = [] }) {
   const [taskId, setTaskId] = useState(null);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
+  const [processingIds, setProcessingIds] = useState([]);
+
+  // 打开项目目录
+  const handleOpenDirectory = async projectId => {
+    try {
+      setProcessingIds(prev => [...prev, projectId]);
+
+      const response = await fetch('/api/projects/open-directory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projectId })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || t('migration.openDirectoryFailed'));
+      }
+
+      // 成功打开目录，不需要特别处理
+    } catch (err) {
+      console.error('打开目录错误:', err);
+      setError(err.message);
+    } finally {
+      setProcessingIds(prev => prev.filter(id => id !== projectId));
+    }
+  };
+
+  // 删除项目目录
+  const handleDeleteDirectory = async projectId => {
+    try {
+      if (!window.confirm(t('migration.confirmDelete'))) {
+        return;
+      }
+
+      setProcessingIds(prev => [...prev, projectId]);
+
+      const response = await fetch('/api/projects/delete-directory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projectId })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || t('migration.deleteDirectoryFailed'));
+      }
+
+      // 从列表中移除已删除的项目
+      const updatedProjectIds = projectIds.filter(id => id !== projectId);
+      // 这里我们不能直接修改 projectIds，因为它是从父组件传入的
+      // 但我们可以通知用户界面刷新
+      window.location.reload();
+    } catch (err) {
+      console.error('删除目录错误:', err);
+      setError(err.message);
+    } finally {
+      setProcessingIds(prev => prev.filter(id => id !== projectId));
+    }
+  };
 
   // 处理迁移操作
   const handleMigration = async () => {
@@ -172,6 +240,31 @@ export default function MigrationDialog({ open, onClose, projectIds = [] }) {
                 {projectIds.map(id => (
                   <ListItem key={id}>
                     <ListItemText primary={id} />
+                    <ListItemSecondaryAction>
+                      <Tooltip title={t('migration.openDirectory')}>
+                        <IconButton
+                          edge="end"
+                          aria-label="open"
+                          onClick={() => handleOpenDirectory(id)}
+                          disabled={processingIds.includes(id)}
+                          size="small"
+                        >
+                          <FolderOpenIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('migration.deleteDirectory')}>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => handleDeleteDirectory(id)}
+                          disabled={processingIds.includes(id)}
+                          size="small"
+                          sx={{ ml: 1, color: 'error.main' }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </ListItemSecondaryAction>
                   </ListItem>
                 ))}
               </List>
