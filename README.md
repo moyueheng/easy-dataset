@@ -42,7 +42,11 @@ With Easy Dataset, you can transform domain knowledge into structured datasets, 
 
 ## Quick Demo
 
-<video src="https://raw.githubusercontent.com/ConardLi/static/main/video/ed.mp4" controls width="640" autoplay muted loop></video>
+
+
+https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
+
+
 
 ## Local Run
 
