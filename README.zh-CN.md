@@ -42,7 +42,6 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
 
 ## 快速演示
 
-
 https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 
 ## 本地运行
@@ -265,7 +264,11 @@ easy-dataset/
 ## 文档
 
 - 查看本项目的演示视频：[Easy Dataset 演示视频](https://www.bilibili.com/video/BV1y8QpYGE57/)
-- 有关所有功能和 API 的详细文档，请访问我们的 [文档站点](https://docs.easy-dataset.com/)。
+- 有关所有功能和 API 的详细文档，请访问我们的 [文档站点](https://docs.easy-dataset.com/)
+
+## 社区实践
+
+- [Easy Dataset × LLaMA Factory: 让大模型高效学习领域知识](https://buaa-act.feishu.cn/wiki/KY9xwTGs1iqHrRkjXBwcZP9WnL9)
 
 ## 贡献
 

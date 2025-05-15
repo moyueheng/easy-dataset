@@ -42,11 +42,7 @@ With Easy Dataset, you can transform domain knowledge into structured datasets, 
 
 ## Quick Demo
 
-
-
 https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
-
-
 
 ## Local Run
 
@@ -268,7 +264,11 @@ easy-dataset/
 ## Documentation
 
 - View the demo video of this project: [Easy Dataset Demo Video](https://www.bilibili.com/video/BV1y8QpYGE57/)
-- For detailed documentation on all features and APIs, visit our [Documentation Site](https://docs.easy-dataset.com/ed/en).
+- For detailed documentation on all features and APIs, visit our [Documentation Site](https://docs.easy-dataset.com/ed/en)
+
+## Community Practice
+
+[Easy Dataset × LLaMA Factory: Enabling LLMs to Efficiently Learn Domain Knowledge](https://buaa-act.feishu.cn/wiki/GVzlwYcRFiR8OLkHbL6cQpYin7g)
 
 ## Contributing
 
