@@ -371,7 +371,18 @@
     "updateConfig": "Update LLaMA Factory Configuration",
     "noConfig": "No configuration file exists, click the button below to generate",
     "generateConfig": "Generate LLaMA Factory Configuration",
-    "huggingFaceComingSoon": "HuggingFace export feature coming soon"
+    "huggingFaceComingSoon": "HuggingFace export feature coming soon",
+    "uploadToHuggingFace": "Upload to HuggingFace",
+    "datasetName": "Dataset Name",
+    "datasetNameHelp": "Format: username/dataset-name",
+    "privateDataset": "Private Dataset",
+    "datasetSettings": "Dataset Settings",
+    "exportOptions": "Export Options",
+    "uploadSuccess": "Dataset uploaded successfully to HuggingFace",
+    "viewOnHuggingFace": "View on HuggingFace",
+    "noTokenWarning": "HuggingFace Token not found. Please configure it in project settings.",
+    "goToSettings": "Go to Settings",
+    "tokenHelp": "You can get your token from HuggingFace settings page"
   },
   "datasets": {
     "generatingDataset": "Generating Dataset",
