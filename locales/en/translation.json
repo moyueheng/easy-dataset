@@ -545,6 +545,11 @@
     "startFailed": "Failed to start migration task",
     "statusFailed": "Failed to get migration status",
     "taskNotFound": "Migration task not found",
-    "progressStatus": "Migrated {{completed}}/{{total}} projects"
+    "progressStatus": "Migrated {{completed}}/{{total}} projects",
+    "openDirectory": "Open Directory",
+    "deleteDirectory": "Delete Directory",
+    "confirmDelete": "Are you sure you want to delete this project directory? This action cannot be undone.",
+    "openDirectoryFailed": "Failed to open project directory",
+    "deleteDirectoryFailed": "Failed to delete project directory"
   }
 }

@@ -190,7 +190,9 @@
     "deleteSuccess": "项目删除成功",
     "deleteFailed": "删除项目失败",
     "backToHome": "返回首页",
-    "deleteConfirmTitle": "确认删除项目"
+    "deleteConfirmTitle": "确认删除项目",
+    "title": "项目管理",
+    "openDirectory": "打开项目目录"
   },
   "textSplit": {
     "allChunks": "全部文本块",
@@ -547,6 +549,11 @@
     "startFailed": "启动迁移任务失败",
     "statusFailed": "获取迁移状态失败",
     "taskNotFound": "迁移任务不存在",
-    "progressStatus": "已迁移 {{completed}}/{{total}} 个项目"
+    "progressStatus": "已迁移 {{completed}}/{{total}} 个项目",
+    "openDirectory": "打开项目目录",
+    "deleteDirectory": "删除项目目录",
+    "confirmDelete": "确定要删除此项目目录吗？此操作不可恢复。",
+    "openDirectoryFailed": "打开项目目录失败",
+    "deleteDirectoryFailed": "删除项目目录失败"
   }
 }
