@@ -18,7 +18,7 @@ export async function POST(request, { params }) {
     const { fileNames, model, language, fileId, domainTreeAction = 'rebuild' } = await request.json();
 
     if (!model) {
-      return NextResponse.json({ error: '请选择模型' }, { status: 400 });
+      return NextResponse.json({ error: 'Pelease Select Model' }, { status: 400 });
     }
 
     // 验证文件名
