@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateQuestionsPrompt } from '@/lib/llm/prompts/generateQuestions';
+import { distillQuestionsPrompt } from '@/lib/llm/prompts/distillQuestions';
 import { db } from '@/lib/db';
 
 const LLMClient = require('@/lib/llm/core');
@@ -84,8 +84,7 @@ export async function POST(request, { params }) {
     });
 
     // 生成提示词
-    const prompt = generateQuestionsPrompt(tagPath, currentTag, count, existingQuestionTexts);
-    console.log(11, prompt);
+    const prompt = distillQuestionsPrompt(tagPath, currentTag, count, existingQuestionTexts);
 
     // 调用大模型生成问题
     const { answer } = await llmClient.getResponseWithCOT(prompt);
