@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
   Box,
-  Slider,
   CircularProgress,
   Alert,
   List,
@@ -23,6 +22,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
+import i18n from '@/lib/i18n';
 
 /**
  * 问题生成对话框组件
@@ -53,7 +53,8 @@ export default function QuestionGenerationDialog({ open, onClose, onGenerated, p
         currentTag: tag.label,
         tagId: tag.id,
         count,
-        model
+        model,
+        language: i18n.language
       });
 
       setGeneratedQuestions(response.data);

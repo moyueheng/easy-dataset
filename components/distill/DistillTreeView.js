@@ -226,7 +226,19 @@ const DistillTreeView = forwardRef(function DistillTreeView(
                       {tag.children && tag.children.length > 0 && (
                         <Chip
                           size="small"
-                          label={`${tag.children.length} ${t('distill.subTags')}`}
+                          label={`${(() => {
+                            // 递归计算所有层级的子标签数量
+                            const getTotalSubTagsCount = childrenTags => {
+                              let count = childrenTags.length;
+                              childrenTags.forEach(childTag => {
+                                if (childTag.children && childTag.children.length > 0) {
+                                  count += getTotalSubTagsCount(childTag.children);
+                                }
+                              });
+                              return count;
+                            };
+                            return getTotalSubTagsCount(tag.children);
+                          })()} ${t('distill.subTags')}`}
                           color="primary"
                           variant="outlined"
                           sx={{ height: 20, fontSize: '0.7rem' }}
@@ -314,7 +326,7 @@ const DistillTreeView = forwardRef(function DistillTreeView(
                       size="small"
                       onClick={e => {
                         e.stopPropagation();
-                        onGenerateSubTags(tag);
+                        onGenerateSubTags(tag, getTagPath(tag));
                       }}
                     >
                       <AddIcon fontSize="small" />

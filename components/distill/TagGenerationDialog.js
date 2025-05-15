@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
   Box,
-  Slider,
   CircularProgress,
   Alert,
   Chip,
@@ -20,6 +19,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
+import i18n from '@/lib/i18n';
 
 /**
  * 标签生成对话框组件
@@ -29,9 +29,10 @@ import axios from 'axios';
  * @param {Function} props.onGenerated - 标签生成完成的回调函数
  * @param {string} props.projectId - 项目ID
  * @param {Object} props.parentTag - 父标签对象，为null时表示生成根标签
+ * @param {string} props.tagPath - 标签链路
  * @param {Object} props.model - 选择的模型配置
  */
-export default function TagGenerationDialog({ open, onClose, onGenerated, projectId, parentTag, model }) {
+export default function TagGenerationDialog({ open, onClose, onGenerated, projectId, parentTag, tagPath, model }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -66,8 +67,10 @@ export default function TagGenerationDialog({ open, onClose, onGenerated, projec
       const response = await axios.post(`/api/projects/${projectId}/distill/tags`, {
         parentTag: parentTagName,
         parentTagId: parentTag ? parentTag.id : null,
+        tagPath: tagPath || parentTagName,
         count,
-        model
+        model,
+        language: i18n.language
       });
 
       setGeneratedTags(response.data);
@@ -131,6 +134,18 @@ export default function TagGenerationDialog({ open, onClose, onGenerated, projec
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
+        )}
+
+        {/* 标签路径显示 */}
+        {parentTag && tagPath && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              {t('distill.tagPath')}:
+            </Typography>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1, backgroundColor: 'background.paper' }}>
+              <Typography variant="body1">{tagPath || parentTag.label}</Typography>
+            </Paper>
+          </Box>
         )}
 
         <Box sx={{ mb: 3 }}>

@@ -68,12 +68,13 @@ export default function DistillPage() {
   };
 
   // 打开生成标签对话框
-  const handleOpenTagDialog = (tag = null) => {
+  const handleOpenTagDialog = (tag = null, tagPath = '') => {
     if (!selectedModel || Object.keys(selectedModel).length === 0) {
       setError(t('distill.selectModelFirst'));
       return;
     }
     setSelectedTag(tag);
+    setSelectedTagPath(tagPath);
     setTagDialogOpen(true);
   };
 
@@ -167,6 +168,7 @@ export default function DistillPage() {
           onGenerated={handleTagGenerated}
           projectId={projectId}
           parentTag={selectedTag}
+          tagPath={selectedTagPath}
           model={selectedModel}
         />
       )}

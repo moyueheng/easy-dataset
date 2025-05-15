@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { distillQuestionsPrompt } from '@/lib/llm/prompts/distillQuestions';
+import { distillQuestionsEnPrompt } from '@/lib/llm/prompts/distillQuestionsEn';
 import { db } from '@/lib/db';
 
 const LLMClient = require('@/lib/llm/core');
@@ -16,10 +17,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: '项目ID不能为空' }, { status: 400 });
     }
 
-    const { tagPath, currentTag, tagId, count = 10 } = await request.json();
+    const { tagPath, currentTag, tagId, count = 5, model, language = 'zh' } = await request.json();
 
     if (!currentTag || !tagPath) {
-      return NextResponse.json({ error: '标签信息不能为空' }, { status: 400 });
+      const errorMsg = language === 'en' ? 'Tag information cannot be empty' : '标签信息不能为空';
+      return NextResponse.json({ error: errorMsg }, { status: 400 });
     }
 
     // 首先获取或创建蒸馏文本块
@@ -57,34 +59,13 @@ export async function POST(request, { params }) {
 
     const existingQuestionTexts = existingQuestions.map(q => q.question);
 
-    // 获取项目配置
-    const project = await db.projects.findUnique({
-      where: { id: projectId }
-    });
-
-    // 获取默认模型配置
-    const modelConfig = await db.modelConfig.findFirst({
-      where: {
-        projectId,
-        id: project.defaultModelConfigId
-      }
-    });
-
-    if (!modelConfig) {
-      return NextResponse.json({ error: '未找到默认模型配置' }, { status: 400 });
-    }
-
     // 创建LLM客户端
-    const llmClient = new LLMClient({
-      providerId: modelConfig.providerId,
-      endpoint: modelConfig.endpoint,
-      apiKey: modelConfig.apiKey,
-      modelName: modelConfig.modelName,
-      temperature: modelConfig.temperature
-    });
+    // 使用前端传过来的模型配置
+    const llmClient = new LLMClient(model);
 
     // 生成提示词
-    const prompt = distillQuestionsPrompt(tagPath, currentTag, count, existingQuestionTexts);
+    const promptFunc = language === 'en' ? distillQuestionsEnPrompt : distillQuestionsPrompt;
+    const prompt = promptFunc(tagPath, currentTag, count, existingQuestionTexts);
 
     // 调用大模型生成问题
     const { answer } = await llmClient.getResponseWithCOT(prompt);

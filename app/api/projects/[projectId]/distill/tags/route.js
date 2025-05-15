@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { distillTagsPrompt } from '@/lib/llm/prompts/distillTags';
+import { distillTagsEnPrompt } from '@/lib/llm/prompts/distillTagsEn';
 import { db } from '@/lib/db';
 
 const LLMClient = require('@/lib/llm/core');
@@ -16,10 +17,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: '项目ID不能为空' }, { status: 400 });
     }
 
-    const { parentTag, parentTagId, count = 10, model } = await request.json();
+    const { parentTag, parentTagId, tagPath, count = 10, model, language = 'zh' } = await request.json();
 
     if (!parentTag) {
-      return NextResponse.json({ error: '主题标签名称不能为空' }, { status: 400 });
+      const errorMsg = language === 'en' ? 'Topic tag name cannot be empty' : '主题标签名称不能为空';
+      return NextResponse.json({ error: errorMsg }, { status: 400 });
     }
 
     // 查询现有标签
@@ -36,7 +38,8 @@ export async function POST(request, { params }) {
     const llmClient = new LLMClient(model);
 
     // 生成提示词
-    const prompt = distillTagsPrompt(parentTag, existingTagNames, count);
+    const promptFunc = language === 'en' ? distillTagsEnPrompt : distillTagsPrompt;
+    const prompt = promptFunc(tagPath, parentTag, existingTagNames, count);
 
     // 调用大模型生成标签
     const { answer } = await llmClient.getResponseWithCOT(prompt);
