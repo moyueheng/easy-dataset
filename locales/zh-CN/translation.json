@@ -324,6 +324,9 @@
     "editTag": "编辑标签",
     "deleteTag": "删除标签",
     "addChildTag": "添加子标签",
+    "deleteTagConfirmTitle": "删除标签",
+    "deleteTagConfirmMessage": "您确定要删除标签 \"{{tag}}\" 吗？",
+    "deleteWarning": "此操作将删除该标签及其所有子标签、问题和数据集，且无法恢复！",
     "dialog": {
       "addTitle": "添加标签",
       "editTitle": "编辑标签",
@@ -581,6 +584,7 @@
     "selectModelFirst": "请先选择一个模型",
     "selectModel": "选择模型",
     "generateTagsError": "生成标签失败",
-    "generateQuestionsError": "生成问题失败"
+    "generateQuestionsError": "生成问题失败",
+    "deleteTagConfirmTitle": "确认要删除标签吗？将关联删除所有该标签下的子标签、问题、数据集"
   }
 }

@@ -321,6 +321,9 @@
     "editTag": "Edit Tag",
     "deleteTag": "Delete Tag",
     "addChildTag": "Add Child Tag",
+    "deleteTagConfirmTitle": "Delete Tag",
+    "deleteTagConfirmMessage": "Are you sure you want to delete tag \"{{tag}}\"?",
+    "deleteWarning": "This action will delete this tag and all its child tags, questions, and datasets. This cannot be undone!",
     "dialog": {
       "addTitle": "Add Tag",
       "editTitle": "Edit Tag",
@@ -579,6 +582,7 @@
     "selectModel": "Select Model",
     "generateTagsError": "Failed to generate tags",
     "subTags": "sub-tags",
-    "questions": "questions"
+    "questions": "questions",
+    "deleteTagConfirmTitle": "Confirm to delete tag?"
   }
 }

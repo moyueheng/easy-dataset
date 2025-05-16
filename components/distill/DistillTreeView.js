@@ -15,10 +15,13 @@ import {
   Collapse,
   Chip,
   Tooltip,
-  Divider,
   CircularProgress,
   Menu,
-  MenuItem
+  MenuItem,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  Button
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -146,19 +149,58 @@ const DistillTreeView = forwardRef(function DistillTreeView(
     setSelectedTagForMenu(null);
   };
 
-  // 处理删除标签
-  const handleDeleteTag = async () => {
-    if (!selectedTagForMenu) return;
+  // 删除确认对话框状态
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  // 存储要删除的标签
+  const [tagToDelete, setTagToDelete] = useState(null);
 
-    try {
-      await axios.delete(`/api/projects/${projectId}/tags/${selectedTagForMenu.id}`);
-      // 刷新页面或通知父组件重新获取标签
-      window.location.reload();
-    } catch (error) {
-      console.error('删除标签失败:', error);
-    } finally {
-      handleMenuClose();
+  // 打开删除确认对话框
+  const openDeleteConfirm = () => {
+    console.log('打开删除确认对话框', selectedTagForMenu);
+    // 保存要删除的标签
+    setTagToDelete(selectedTagForMenu);
+    setDeleteConfirmOpen(true);
+    handleMenuClose();
+  };
+
+  // 关闭删除确认对话框
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+  };
+
+  // 处理删除标签
+  const handleDeleteTag = () => {
+    if (!tagToDelete) {
+      console.log('没有要删除的标签信息');
+      return;
     }
+
+    console.log('开始删除标签:', tagToDelete.id, tagToDelete.label);
+
+    // 先关闭确认对话框
+    closeDeleteConfirm();
+
+    // 执行删除操作
+    const deleteTagAction = async () => {
+      try {
+        console.log('发送删除请求:', `/api/projects/${projectId}/tags?id=${tagToDelete.id}`);
+
+        // 发送删除请求
+        const response = await axios.delete(`/api/projects/${projectId}/tags?id=${tagToDelete.id}`);
+
+        console.log('删除标签成功:', response.data);
+
+        // 刷新页面
+        window.location.reload();
+      } catch (error) {
+        console.error('删除标签失败:', error);
+        console.error('错误详情:', error.response ? error.response.data : '无响应数据');
+        alert(`删除标签失败: ${error.message}`);
+      }
+    };
+
+    // 立即执行删除操作
+    deleteTagAction();
   };
 
   // 处理删除问题
@@ -201,11 +243,62 @@ const DistillTreeView = forwardRef(function DistillTreeView(
     [tags]
   );
 
+  /**
+   * 按照标签前面的序号对标签进行排序
+   * @param {Array} tags - 标签数组
+   * @returns {Array} 排序后的标签数组
+   */
+  const sortTagsByNumber = useCallback(tags => {
+    return [...tags].sort((a, b) => {
+      // 提取标签前面的序号
+      const getNumberPrefix = label => {
+        // 匹配形如 1, 1.1, 1.1.2 的序号
+        const match = label.match(/^([\d.]+)\s/);
+        if (match) {
+          return match[1]; // 返回完整的序号字符串，如 "1.10"
+        }
+        return null; // 没有序号
+      };
+
+      const aPrefix = getNumberPrefix(a.label);
+      const bPrefix = getNumberPrefix(b.label);
+
+      // 如果两个标签都有序号，按序号比较
+      if (aPrefix && bPrefix) {
+        // 将序号分解为数组，然后按数值比较
+        const aParts = aPrefix.split('.').map(num => parseInt(num, 10));
+        const bParts = bPrefix.split('.').map(num => parseInt(num, 10));
+
+        // 比较序号数组
+        for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+          if (aParts[i] !== bParts[i]) {
+            return aParts[i] - bParts[i]; // 数值比较，确保 1.2 排在 1.10 前面
+          }
+        }
+        // 如果前面的数字都相同，则较短的序号在前
+        return aParts.length - bParts.length;
+      }
+      // 如果只有一个标签有序号，则有序号的在前
+      else if (aPrefix) {
+        return -1;
+      } else if (bPrefix) {
+        return 1;
+      }
+      // 如果都没有序号，则按原来的字母序排序
+      else {
+        return a.label.localeCompare(b.label, 'zh-CN');
+      }
+    });
+  }, []);
+
   // 渲染标签树
   const renderTagTree = (tagList, level = 0) => {
+    // 对同级标签进行排序
+    const sortedTagList = sortTagsByNumber(tagList);
+
     return (
       <List disablePadding sx={{ px: 2 }}>
-        {tagList.map(tag => (
+        {sortedTagList.map(tag => (
           <Box key={tag.id} sx={{ my: 0.5 }}>
             <ListItem
               disablePadding
@@ -422,7 +515,7 @@ const DistillTreeView = forwardRef(function DistillTreeView(
   // 标签操作菜单
   const tagMenu = (
     <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
-      <MenuItem onClick={handleDeleteTag}>
+      <MenuItem onClick={openDeleteConfirm}>
         <ListItemIcon>
           <DeleteIcon fontSize="small" />
         </ListItemIcon>
@@ -431,30 +524,39 @@ const DistillTreeView = forwardRef(function DistillTreeView(
     </Menu>
   );
 
+  // 删除确认对话框
+  const deleteConfirmDialog = (
+    <Dialog
+      open={deleteConfirmOpen}
+      onClose={closeDeleteConfirm}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
+      <DialogTitle id="alert-dialog-title">{t('distill.deleteTagConfirmTitle')}</DialogTitle>
+      <DialogActions>
+        <Button onClick={closeDeleteConfirm} color="primary">
+          {t('common.cancel')}
+        </Button>
+        <Button onClick={handleDeleteTag} color="error" autoFocus>
+          {t('common.delete')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   return (
     <Box>
       {tagTree.length > 0 ? (
         renderTagTree(tagTree)
       ) : (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 4,
-            textAlign: 'center',
-            borderRadius: 2,
-            backgroundColor: 'background.paper'
-          }}
-        >
+        <Box sx={{ p: 2, textAlign: 'center' }}>
           <Typography variant="body1" color="text.secondary">
             {t('distill.noTags')}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {t('distill.clickGenerateButton')}
-          </Typography>
-        </Paper>
+        </Box>
       )}
-
       {tagMenu}
+      {deleteConfirmDialog}
     </Box>
   );
 });
