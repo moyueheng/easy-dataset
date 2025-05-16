@@ -1,33 +1,56 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'next/navigation';
 import { useAtomValue } from 'jotai';
 import { selectedModelInfoAtom } from '@/lib/store';
-import { Box, Typography, Paper, Container, Button, CircularProgress, Alert, Tabs, Tab } from '@mui/material';
+import { Box, Typography, Paper, Container, Button, CircularProgress, Alert, Tabs, Tab, Grid } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import DistillTreeView from '@/components/distill/DistillTreeView';
 import TagGenerationDialog from '@/components/distill/TagGenerationDialog';
 import QuestionGenerationDialog from '@/components/distill/QuestionGenerationDialog';
+import AutoDistillDialog from '@/components/distill/AutoDistillDialog';
+import AutoDistillProgress from '@/components/distill/AutoDistillProgress';
+import { autoDistillService } from './autoDistillService';
 import axios from 'axios';
 
 export default function DistillPage() {
-  const { t } = useTranslation();
-  const params = useParams();
-  const projectId = params.projectId;
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [project, setProject] = useState(null);
-  const [tags, setTags] = useState([]);
+  const { t, i18n } = useTranslation();
+  const { projectId } = useParams();
   const selectedModel = useAtomValue(selectedModelInfoAtom);
 
-  // 对话框状态
+  const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [tags, setTags] = useState([]);
+
+  // 标签生成对话框相关状态
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState(null);
   const [selectedTagPath, setSelectedTagPath] = useState('');
+
+  // 自动蒸馏相关状态
+  const [autoDistillDialogOpen, setAutoDistillDialogOpen] = useState(false);
+  const [autoDistillProgressOpen, setAutoDistillProgressOpen] = useState(false);
+  const [autoDistillRunning, setAutoDistillRunning] = useState(false);
+  const [distillStats, setDistillStats] = useState({
+    tagsCount: 0,
+    questionsCount: 0,
+    datasetsCount: 0
+  });
+  const [distillProgress, setDistillProgress] = useState({
+    stage: 'initializing',
+    tagsTotal: 0,
+    tagsBuilt: 0,
+    questionsTotal: 0,
+    questionsBuilt: 0,
+    datasetsTotal: 0,
+    datasetsBuilt: 0,
+    logs: []
+  });
 
   const treeViewRef = useRef(null);
 
@@ -36,6 +59,7 @@ export default function DistillPage() {
     if (projectId) {
       fetchProject();
       fetchTags();
+      fetchDistillStats();
     }
   }, [projectId]);
 
@@ -64,6 +88,30 @@ export default function DistillPage() {
       setError(t('common.fetchError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 获取蒸馏统计信息
+  const fetchDistillStats = async () => {
+    try {
+      // 获取标签数量
+      const tagsResponse = await axios.get(`/api/projects/${projectId}/distill/tags/all`);
+      const tagsCount = tagsResponse.data.length;
+
+      // 获取问题数量
+      const questionsResponse = await axios.get(`/api/projects/${projectId}/questions/tree?isDistill=true`);
+      const questionsCount = questionsResponse.data.length;
+
+      // TODO: 获取数据集数量，简化起见暂用问题数量代替
+      const datasetsCount = questionsResponse.data.filter(q => q.answered).length;
+
+      setDistillStats({
+        tagsCount,
+        questionsCount,
+        datasetsCount
+      });
+    } catch (error) {
+      console.error('获取蒸馏统计信息失败:', error);
     }
   };
 
@@ -102,10 +150,149 @@ export default function DistillPage() {
 
     // 刷新标签数据
     fetchTags();
+    fetchDistillStats();
 
     // 如果 treeViewRef 存在且有 fetchQuestionsStats 方法，则调用它刷新问题统计信息
     if (treeViewRef.current && typeof treeViewRef.current.fetchQuestionsStats === 'function') {
       treeViewRef.current.fetchQuestionsStats();
+    }
+  };
+
+  // 打开自动蒸馏对话框
+  const handleOpenAutoDistillDialog = () => {
+    if (!selectedModel || Object.keys(selectedModel).length === 0) {
+      setError(t('distill.selectModelFirst'));
+      return;
+    }
+    setAutoDistillDialogOpen(true);
+  };
+
+  // 开始自动蒸馏任务
+  const handleStartAutoDistill = async config => {
+    setAutoDistillDialogOpen(false);
+    setAutoDistillProgressOpen(true);
+    setAutoDistillRunning(true);
+
+    // 初始化进度信息
+    setDistillProgress({
+      stage: 'initializing',
+      tagsTotal: config.estimatedTags,
+      tagsBuilt: distillStats.tagsCount || 0,
+      questionsTotal: config.estimatedQuestions,
+      questionsBuilt: distillStats.questionsCount || 0,
+      datasetsTotal: config.estimatedQuestions, // 初步设置数据集总数为问题数，后面会更新
+      datasetsBuilt: distillStats.datasetsCount || 0, // 根据当前已生成的数据集数量初始化
+      logs: [t('distill.autoDistillStarted', { time: new Date().toLocaleTimeString() })]
+    });
+
+    try {
+      // 检查模型是否存在
+      if (!selectedModel || Object.keys(selectedModel).length === 0) {
+        addLog(t('distill.selectModelFirst'));
+        setAutoDistillRunning(false);
+        return;
+      }
+
+      // 使用 autoDistillService 执行蒸馏任务
+      await autoDistillService.executeDistillTask({
+        projectId,
+        topic: config.topic,
+        levels: config.levels,
+        tagsPerLevel: config.tagsPerLevel,
+        questionsPerTag: config.questionsPerTag,
+        model: selectedModel,
+        language: i18n.language,
+        onProgress: updateProgress,
+        onLog: addLog
+      });
+
+      // 更新任务状态
+      setAutoDistillRunning(false);
+    } catch (error) {
+      console.error('自动蒸馏任务执行失败:', error);
+      addLog(`任务执行出错: ${error.message || '未知错误'}`);
+      setAutoDistillRunning(false);
+    }
+  };
+
+  // 更新进度
+  const updateProgress = progressUpdate => {
+    setDistillProgress(prev => {
+      const newProgress = { ...prev };
+
+      // 更新阶段
+      if (progressUpdate.stage) {
+        newProgress.stage = progressUpdate.stage;
+      }
+
+      // 更新标签总数
+      if (progressUpdate.tagsTotal) {
+        newProgress.tagsTotal = progressUpdate.tagsTotal;
+      }
+
+      // 更新已构建标签数
+      if (progressUpdate.tagsBuilt) {
+        if (progressUpdate.updateType === 'increment') {
+          newProgress.tagsBuilt += progressUpdate.tagsBuilt;
+        } else {
+          newProgress.tagsBuilt = progressUpdate.tagsBuilt;
+        }
+      }
+
+      // 更新问题总数
+      if (progressUpdate.questionsTotal) {
+        newProgress.questionsTotal = progressUpdate.questionsTotal;
+      }
+
+      // 更新已生成问题数
+      if (progressUpdate.questionsBuilt) {
+        if (progressUpdate.updateType === 'increment') {
+          newProgress.questionsBuilt += progressUpdate.questionsBuilt;
+        } else {
+          newProgress.questionsBuilt = progressUpdate.questionsBuilt;
+        }
+      }
+
+      // 更新数据集总数
+      if (progressUpdate.datasetsTotal) {
+        newProgress.datasetsTotal = progressUpdate.datasetsTotal;
+      }
+
+      // 更新已生成数据集数
+      if (progressUpdate.datasetsBuilt) {
+        if (progressUpdate.updateType === 'increment') {
+          newProgress.datasetsBuilt += progressUpdate.datasetsBuilt;
+        } else {
+          newProgress.datasetsBuilt = progressUpdate.datasetsBuilt;
+        }
+      }
+
+      return newProgress;
+    });
+  };
+
+  // 添加日志
+  const addLog = message => {
+    setDistillProgress(prev => ({
+      ...prev,
+      logs: [...prev.logs, message]
+    }));
+  };
+
+  // 关闭进度对话框
+  const handleCloseProgressDialog = () => {
+    if (!autoDistillRunning) {
+      setAutoDistillProgressOpen(false);
+      // 刷新数据
+      fetchTags();
+      fetchDistillStats();
+      if (treeViewRef.current && typeof treeViewRef.current.fetchQuestionsStats === 'function') {
+        treeViewRef.current.fetchQuestionsStats();
+      }
+    } else {
+      // 如果任务还在运行，可以展示一个确认对话框
+      // 这里简化处理，直接关闭
+      setAutoDistillProgressOpen(false);
     }
   };
 
@@ -124,17 +311,30 @@ export default function DistillPage() {
           <Typography variant="h5" component="h1" fontWeight="bold">
             {t('distill.title')}
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={() => handleOpenTagDialog(null)}
-            disabled={!selectedModel}
-            startIcon={<AddIcon />}
-            sx={{ px: 3, py: 1 }}
-          >
-            {t('distill.generateRootTags')}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="large"
+              onClick={handleOpenAutoDistillDialog}
+              disabled={!selectedModel}
+              startIcon={<AutoFixHighIcon />}
+              sx={{ px: 3, py: 1 }}
+            >
+              {t('distill.autoDistillButton')}
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={() => handleOpenTagDialog(null)}
+              disabled={!selectedModel}
+              startIcon={<AddIcon />}
+              sx={{ px: 3, py: 1 }}
+            >
+              {t('distill.generateRootTags')}
+            </Button>
+          </Box>
         </Box>
 
         {error && (
@@ -185,6 +385,23 @@ export default function DistillPage() {
           model={selectedModel}
         />
       )}
+
+      {/* 全自动蒸馏数据集配置对话框 */}
+      <AutoDistillDialog
+        open={autoDistillDialogOpen}
+        onClose={() => setAutoDistillDialogOpen(false)}
+        onStart={handleStartAutoDistill}
+        projectId={projectId}
+        project={project}
+        stats={distillStats}
+      />
+
+      {/* 全自动蒸馏进度对话框 */}
+      <AutoDistillProgress
+        open={autoDistillProgressOpen}
+        onClose={handleCloseProgressDialog}
+        progress={distillProgress}
+      />
     </Container>
   );
 }

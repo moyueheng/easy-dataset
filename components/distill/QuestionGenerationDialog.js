@@ -104,7 +104,7 @@ export default function QuestionGenerationDialog({ open, onClose, onGenerated, p
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="div">
-          {t('distill.generateQuestionsTitle', { tag: tag.label })}
+          {t('distill.generateQuestionsTitle', { tag: tag?.label || t('distill.unknownTag') })}
         </Typography>
         <IconButton edge="end" color="inherit" onClick={handleClose} aria-label="close">
           <CloseIcon />
@@ -123,7 +123,7 @@ export default function QuestionGenerationDialog({ open, onClose, onGenerated, p
             {t('distill.tagPath')}:
           </Typography>
           <Paper variant="outlined" sx={{ p: 2, borderRadius: 1, backgroundColor: 'background.paper' }}>
-            <Typography variant="body1">{tagPath || tag.label}</Typography>
+            <Typography variant="body1">{tagPath || tag?.label || t('distill.unknownTag')}</Typography>
           </Paper>
         </Box>
 
