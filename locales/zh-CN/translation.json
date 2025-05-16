@@ -120,7 +120,8 @@
     "createQuestion": "创建问题",
     "questionPlaceholder": "请输入问题内容",
     "noChunkSelected": "请先选择文本块",
-    "noTagSelected": "请选择标签"
+    "noTagSelected": "请选择标签",
+    "deleteConfirm": "确认要删除这个问题吗？"
   },
   "common": {
     "jumpTo": "跳转至",
@@ -156,7 +157,8 @@
     "copy": "复制",
     "copied": "已复制",
     "enabled": "已启用",
-    "disabled": "已禁用"
+    "disabled": "已禁用",
+    "generating": "正在生成..."
   },
   "home": {
     "title": "Easy Dataset",
@@ -443,6 +445,7 @@
     "generateFailed": "生成数据集失败：{{error}}",
     "noTagsAndQuestions": "暂无标签和问题",
     "answerCount": "{{count}} 个答案",
+    "answered": "已生成答案",
     "enableShortcuts": "翻页快捷键",
     "shortcutsHelp": "按 ← 向前，按 → 向后，按 y 确认，按 d 删除"
   },
