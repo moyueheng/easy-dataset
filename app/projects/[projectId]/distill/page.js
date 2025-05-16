@@ -202,6 +202,7 @@ export default function DistillPage() {
         questionsPerTag: config.questionsPerTag,
         model: selectedModel,
         language: i18n.language,
+        concurrencyLimit: project?.taskConfig?.concurrencyLimit || 5, // 从项目配置中获取并发限制
         onProgress: updateProgress,
         onLog: addLog
       });
@@ -271,12 +272,17 @@ export default function DistillPage() {
     });
   };
 
-  // 添加日志
+  // 添加日志，最多保留200条
   const addLog = message => {
-    setDistillProgress(prev => ({
-      ...prev,
-      logs: [...prev.logs, message]
-    }));
+    setDistillProgress(prev => {
+      const newLogs = [...prev.logs, message];
+      // 如果日志超过200条，只保留最新的200条
+      const limitedLogs = newLogs.length > 200 ? newLogs.slice(-200) : newLogs;
+      return {
+        ...prev,
+        logs: limitedLogs
+      };
+    });
   };
 
   // 关闭进度对话框

@@ -21,7 +21,18 @@ class AutoDistillService {
    * @returns {Promise<void>}
    */
   async executeDistillTask(config) {
-    const { projectId, topic, levels, tagsPerLevel, questionsPerTag, model, language, onProgress, onLog } = config;
+    const {
+      projectId,
+      topic,
+      levels,
+      tagsPerLevel,
+      questionsPerTag,
+      model,
+      language,
+      concurrencyLimit = 5,
+      onProgress,
+      onLog
+    } = config;
 
     try {
       // 初始化进度信息
@@ -62,6 +73,7 @@ class AutoDistillService {
         questionsPerTag,
         model,
         language,
+        concurrencyLimit,
         onProgress,
         onLog
       });
@@ -71,6 +83,7 @@ class AutoDistillService {
         projectId,
         model,
         language,
+        concurrencyLimit,
         onProgress,
         onLog
       });
@@ -220,7 +233,7 @@ class AutoDistillService {
    * @returns {Promise<void>}
    */
   async generateQuestionsForTags(config) {
-    const { projectId, levels, questionsPerTag, model, language, onProgress, onLog } = config;
+    const { projectId, levels, questionsPerTag, model, language, concurrencyLimit = 5, onProgress, onLog } = config;
 
     // 设置当前阶段
     if (onProgress) {
@@ -272,7 +285,11 @@ class AutoDistillService {
         });
       }
 
-      // 为每个叶子标签生成问题
+      // 准备并发任务
+      const generateQuestionTasks = [];
+      const processedTags = [];
+
+      // 准备所有需要生成问题的叶子标签任务
       for (const tag of leafTags) {
         // 获取标签路径
         const tagPath = this.getTagPath(tag, allTags);
@@ -280,37 +297,70 @@ class AutoDistillService {
         // 计算已有问题数量
         const existingQuestions = allQuestions.filter(q => q.label === tag.label);
         const needToCreate = Math.max(0, questionsPerTag - existingQuestions.length);
-        console.log(111, tag, questionsPerTag, existingQuestions.length);
 
         if (needToCreate > 0) {
-          this.addLog(onLog, `正在为标签 "${tag.label}" 生成${needToCreate}个问题...`);
+          // 只添加需要生成问题的标签任务
+          generateQuestionTasks.push({
+            tag,
+            tagPath,
+            needToCreate
+          });
 
-          try {
-            const response = await axios.post(`/api/projects/${projectId}/distill/questions`, {
-              tagPath,
-              currentTag: tag.label,
-              tagId: tag.id,
-              count: needToCreate,
-              model,
-              language
-            });
-
-            // 更新生成的问题数量
-            if (onProgress) {
-              onProgress({
-                questionsBuilt: response.data.length,
-                updateType: 'increment'
-              });
-            }
-            const questions = response.data.map(r => r.question).join('\n');
-            this.addLog(onLog, `成功为标签 "${tag.label}" 生成${response.data.length}个问题22：\n${questions}`);
-          } catch (error) {
-            console.error(`为标签 "${tag.label}" 生成问题失败:`, error);
-            this.addLog(onLog, `为标签 "${tag.label}" 生成问题失败: ${error.message || '未知错误'}`);
-          }
+          this.addLog(onLog, `准备为标签 "${tag.label}" 生成${needToCreate}个问题...`);
         } else {
           this.addLog(onLog, `标签 "${tag.label}" 已有${existingQuestions.length}个问题，无需生成新问题`);
         }
+      }
+
+      // 分批执行生成问题任务，控制并发数
+      this.addLog(onLog, `共有${generateQuestionTasks.length}个标签需要生成问题，并发数量: ${concurrencyLimit}`);
+
+      // 使用分组批量处理
+      for (let i = 0; i < generateQuestionTasks.length; i += concurrencyLimit) {
+        const batch = generateQuestionTasks.slice(i, i + concurrencyLimit);
+
+        // 并行处理批次任务
+        await Promise.all(
+          batch.map(async task => {
+            const { tag, tagPath, needToCreate } = task;
+
+            this.addLog(onLog, `正在为标签 "${tag.label}" 生成${needToCreate}个问题...`);
+
+            try {
+              const response = await axios.post(`/api/projects/${projectId}/distill/questions`, {
+                tagPath,
+                currentTag: tag.label,
+                tagId: tag.id,
+                count: needToCreate,
+                model,
+                language
+              });
+
+              // 更新生成的问题数量
+              if (onProgress) {
+                onProgress({
+                  questionsBuilt: response.data.length,
+                  updateType: 'increment'
+                });
+              }
+
+              const questions = response.data
+                .map(r => r.question || r.content)
+                .slice(0, 3)
+                .join('\n'); // 只显示前3个问题以避免日志过长
+              this.addLog(onLog, `成功为标签 "${tag.label}" 生成${response.data.length}个问题`);
+            } catch (error) {
+              console.error(`为标签 "${tag.label}" 生成问题失败:`, error);
+              this.addLog(onLog, `为标签 "${tag.label}" 生成问题失败: ${error.message || '未知错误'}`);
+            }
+          })
+        );
+
+        // 每完成一批，输出一次进度日志
+        this.addLog(
+          onLog,
+          `完成了第 ${Math.min(i + concurrencyLimit, generateQuestionTasks.length)}/${generateQuestionTasks.length} 批问题生成`
+        );
       }
     } catch (error) {
       console.error('获取标签失败:', error);
@@ -329,7 +379,7 @@ class AutoDistillService {
    * @returns {Promise<void>}
    */
   async generateDatasetsForQuestions(config) {
-    const { projectId, model, language, onProgress, onLog } = config;
+    const { projectId, model, language, concurrencyLimit = 5, onProgress, onLog } = config;
 
     // 设置当前阶段
     if (onProgress) {
@@ -358,34 +408,49 @@ class AutoDistillService {
       }
 
       this.addLog(onLog, `发现${unansweredQuestions.length}个未回答的问题，准备生成答案...`);
+      this.addLog(onLog, `数据集生成并发数量: ${concurrencyLimit}`);
 
-      for (const question of unansweredQuestions) {
-        const questionContent = `${question.label} 下的问题ID:${question.id}`;
-        this.addLog(onLog, `正在为 "${questionContent}" 生成答案...`);
+      // 分批处理未回答的问题，控制并发数
+      for (let i = 0; i < unansweredQuestions.length; i += concurrencyLimit) {
+        const batch = unansweredQuestions.slice(i, i + concurrencyLimit);
 
-        try {
-          // 调用生成数据集的函数
-          await this.generateSingleDataset({
-            projectId,
-            questionId: question.id,
-            questionInfo: question,
-            model,
-            language
-          });
+        // 并行处理批次任务
+        await Promise.all(
+          batch.map(async question => {
+            const questionContent = `${question.label} 下的问题ID:${question.id}`;
+            this.addLog(onLog, `正在为 "${questionContent}" 生成答案...`);
 
-          // 更新生成的数据集数量
-          if (onProgress) {
-            onProgress({
-              datasetsBuilt: 1,
-              updateType: 'increment'
-            });
-          }
+            try {
+              // 调用生成数据集的函数
+              await this.generateSingleDataset({
+                projectId,
+                questionId: question.id,
+                questionInfo: question,
+                model,
+                language
+              });
 
-          this.addLog(onLog, `成功为问题 "${questionContent}" 生成答案`);
-        } catch (error) {
-          console.error(`为问题 "${questionContent}" 生成答案失败:`, error);
-          this.addLog(onLog, `为问题 "${questionContent}" 生成答案失败: ${error.message || '未知错误'}`);
-        }
+              // 更新生成的数据集数量
+              if (onProgress) {
+                onProgress({
+                  datasetsBuilt: 1,
+                  updateType: 'increment'
+                });
+              }
+
+              this.addLog(onLog, `成功为问题 "${questionContent}" 生成答案`);
+            } catch (error) {
+              console.error(`为问题 "${questionContent}" 生成答案失败:`, error);
+              this.addLog(onLog, `为问题 "${questionContent}" 生成答案失败: ${error.message || '未知错误'}`);
+            }
+          })
+        );
+
+        // 每完成一批，输出一次进度日志
+        this.addLog(
+          onLog,
+          `完成了第 ${Math.min(i + concurrencyLimit, unansweredQuestions.length)}/${unansweredQuestions.length} 批数据集生成`
+        );
       }
     } catch (error) {
       console.error('获取问题失败:', error);
