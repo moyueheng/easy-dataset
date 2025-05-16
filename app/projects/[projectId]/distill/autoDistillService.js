@@ -51,7 +51,7 @@ class AutoDistillService {
       // 添加日志
       this.addLog(
         onLog,
-        `自动蒸馏任务开始，主题：${topic}，层级：${levels}，每层标签数：${tagsPerLevel}，每个标签问题数：${questionsPerTag}`
+        `Starting to build tag tree for "${topic}", number of levels: ${levels}, tags per level: ${tagsPerLevel}, questions per tag: ${questionsPerTag}`
       );
 
       // 从根节点开始构建标签树
@@ -95,10 +95,10 @@ class AutoDistillService {
         });
       }
 
-      this.addLog(onLog, '自动蒸馏任务完成');
+      this.addLog(onLog, 'Auto distillation task completed');
     } catch (error) {
       console.error('自动蒸馏任务执行失败:', error);
-      this.addLog(onLog, `任务执行出错: ${error.message || '未知错误'}`);
+      this.addLog(onLog, `Task execution error: ${error.message || 'Unknown error'}`);
       throw error;
     }
   }
@@ -148,7 +148,7 @@ class AutoDistillService {
         }
       } catch (error) {
         console.error(`获取${level}级标签失败:`, error);
-        this.addLog(onLog, `获取${level}级标签失败: ${error.message}`);
+        this.addLog(onLog, `Failed to get ${level} level tags: ${error.message}`);
         return;
       }
 
@@ -162,7 +162,7 @@ class AutoDistillService {
         // 如果是第一级标签，使用配置中的主题名称
         const parentTagName = level === 1 ? topic : parentTag?.label || '';
 
-        this.addLog(onLog, `正在为${parentTagName ? `"${parentTagName}"` : '根节点'}构建${needToCreate}个子标签...`);
+        this.addLog(onLog, `Tag tree level ${level}: Creating ${tagsPerLevel} subtags for "${parentTagName}"...`);
 
         try {
           const response = await axios.post(`/api/projects/${projectId}/distill/tags`, {
@@ -185,14 +185,14 @@ class AutoDistillService {
           // 添加日志
           this.addLog(
             onLog,
-            `成功构建${response.data.length}个标签: ${response.data.map(tag => tag.label).join(', ')}`
+            `Successfully created ${response.data.length} tags: ${response.data.map(tag => tag.label).join(', ')}`
           );
 
           // 将新创建的标签添加到当前级别标签列表中
           currentLevelTags = [...currentLevelTags, ...response.data];
         } catch (error) {
           console.error(`创建${level}级标签失败:`, error);
-          this.addLog(onLog, `创建${level}级标签失败: ${error.message || '未知错误'}`);
+          this.addLog(onLog, `Failed to create ${level} level tags: ${error.message || 'Unknown error'}`);
         }
       }
 
@@ -242,7 +242,7 @@ class AutoDistillService {
       });
     }
 
-    this.addLog(onLog, '标签树构建完成，开始为叶子标签生成问题...');
+    this.addLog(onLog, 'Tag tree built, starting to generate questions for leaf tags...');
 
     try {
       // 获取所有标签
@@ -271,7 +271,7 @@ class AutoDistillService {
         }
       });
 
-      this.addLog(onLog, `发现${leafTags.length}个叶子标签，准备生成问题...`);
+      this.addLog(onLog, `Found ${leafTags.length} leaf tags, starting to generate questions...`);
 
       // 获取所有问题
       const questionsResponse = await axios.get(`/api/projects/${projectId}/questions/tree?isDistill=true`);
@@ -306,14 +306,20 @@ class AutoDistillService {
             needToCreate
           });
 
-          this.addLog(onLog, `准备为标签 "${tag.label}" 生成${needToCreate}个问题...`);
+          this.addLog(onLog, `Preparing to generate ${needToCreate} questions for tag "${tag.label}"...`);
         } else {
-          this.addLog(onLog, `标签 "${tag.label}" 已有${existingQuestions.length}个问题，无需生成新问题`);
+          this.addLog(
+            onLog,
+            `Tag "${tag.label}" already has ${existingQuestions.length} questions, no need to generate new questions`
+          );
         }
       }
 
       // 分批执行生成问题任务，控制并发数
-      this.addLog(onLog, `共有${generateQuestionTasks.length}个标签需要生成问题，并发数量: ${concurrencyLimit}`);
+      this.addLog(
+        onLog,
+        `Total ${generateQuestionTasks.length} tags need questions, concurrency limit: ${concurrencyLimit}`
+      );
 
       // 使用分组批量处理
       for (let i = 0; i < generateQuestionTasks.length; i += concurrencyLimit) {
@@ -324,7 +330,7 @@ class AutoDistillService {
           batch.map(async task => {
             const { tag, tagPath, needToCreate } = task;
 
-            this.addLog(onLog, `正在为标签 "${tag.label}" 生成${needToCreate}个问题...`);
+            this.addLog(onLog, `Generating ${needToCreate} questions for tag "${tag.label}"...`);
 
             try {
               const response = await axios.post(`/api/projects/${projectId}/distill/questions`, {
@@ -348,10 +354,13 @@ class AutoDistillService {
                 .map(r => r.question || r.content)
                 .slice(0, 3)
                 .join('\n'); // 只显示前3个问题以避免日志过长
-              this.addLog(onLog, `成功为标签 "${tag.label}" 生成${response.data.length}个问题`);
+              this.addLog(onLog, `Successfully generated ${response.data.length} questions for tag "${tag.label}"`);
             } catch (error) {
               console.error(`为标签 "${tag.label}" 生成问题失败:`, error);
-              this.addLog(onLog, `为标签 "${tag.label}" 生成问题失败: ${error.message || '未知错误'}`);
+              this.addLog(
+                onLog,
+                `Failed to generate questions for tag "${tag.label}": ${error.message || 'Unknown error'}`
+              );
             }
           })
         );
@@ -359,12 +368,12 @@ class AutoDistillService {
         // 每完成一批，输出一次进度日志
         this.addLog(
           onLog,
-          `完成了第 ${Math.min(i + concurrencyLimit, generateQuestionTasks.length)}/${generateQuestionTasks.length} 批问题生成`
+          `Completed batch ${Math.min(i + concurrencyLimit, generateQuestionTasks.length)}/${generateQuestionTasks.length} of question generation`
         );
       }
     } catch (error) {
       console.error('获取标签失败:', error);
-      this.addLog(onLog, `获取标签失败: ${error.message || '未知错误'}`);
+      this.addLog(onLog, `Failed to get tags: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -388,7 +397,7 @@ class AutoDistillService {
       });
     }
 
-    this.addLog(onLog, '问题生成完成，开始为问题生成答案...');
+    this.addLog(onLog, 'Question generation completed, starting to generate answers...');
 
     try {
       // 获取所有问题
@@ -407,8 +416,8 @@ class AutoDistillService {
         });
       }
 
-      this.addLog(onLog, `发现${unansweredQuestions.length}个未回答的问题，准备生成答案...`);
-      this.addLog(onLog, `数据集生成并发数量: ${concurrencyLimit}`);
+      this.addLog(onLog, `Found ${unansweredQuestions.length} unanswered questions, preparing to generate answers...`);
+      this.addLog(onLog, `Dataset generation concurrency limit: ${concurrencyLimit}`);
 
       // 分批处理未回答的问题，控制并发数
       for (let i = 0; i < unansweredQuestions.length; i += concurrencyLimit) {
@@ -418,7 +427,7 @@ class AutoDistillService {
         await Promise.all(
           batch.map(async question => {
             const questionContent = `${question.label} 下的问题ID:${question.id}`;
-            this.addLog(onLog, `正在为 "${questionContent}" 生成答案...`);
+            this.addLog(onLog, `Generating answer for "${questionContent}"...`);
 
             try {
               // 调用生成数据集的函数
@@ -438,10 +447,13 @@ class AutoDistillService {
                 });
               }
 
-              this.addLog(onLog, `成功为问题 "${questionContent}" 生成答案`);
+              this.addLog(onLog, `Successfully generated answer for question "${questionContent}"`);
             } catch (error) {
-              console.error(`为问题 "${questionContent}" 生成答案失败:`, error);
-              this.addLog(onLog, `为问题 "${questionContent}" 生成答案失败: ${error.message || '未知错误'}`);
+              console.error(`Failed to generate dataset for question "${question.id}":`, error);
+              this.addLog(
+                onLog,
+                `Failed to generate answer for question "${questionContent}": ${error.message || 'Unknown error'}`
+              );
             }
           })
         );
@@ -449,12 +461,12 @@ class AutoDistillService {
         // 每完成一批，输出一次进度日志
         this.addLog(
           onLog,
-          `完成了第 ${Math.min(i + concurrencyLimit, unansweredQuestions.length)}/${unansweredQuestions.length} 批数据集生成`
+          `Completed batch ${Math.min(i + concurrencyLimit, unansweredQuestions.length)}/${unansweredQuestions.length} of dataset generation`
         );
       }
     } catch (error) {
-      console.error('获取问题失败:', error);
-      this.addLog(onLog, `获取问题失败: ${error.message || '未知错误'}`);
+      console.error('Failed to get questions:', error);
+      this.addLog(onLog, `Failed to get questions: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -493,8 +505,8 @@ class AutoDistillService {
 
       return response.data;
     } catch (error) {
-      console.error('生成数据集失败:', error);
-      throw error;
+      console.error('Failed to generate dataset:', error);
+      throw new Error(`Failed to generate dataset: ${error.message}`);
     }
   }
 

@@ -165,10 +165,16 @@ export default function AutoDistillProgress({ open, onClose, progress = {} }) {
             >
               {progress.logs?.length > 0 ? (
                 progress.logs.map((log, index) => {
-                  // 检测成功日志，显示为绿色
-                  const isSuccess = log.includes('成功') || log.includes('完成');
+                  // 检测成功日志，显示为绿色  Successfully
+                  let color = 'inherit';
+                  if (log.includes('成功') || log.includes('完成') || log.includes('Successfully')) {
+                    color = '#4caf50';
+                  }
+                  if (log.includes('失败') || log.toLowerCase().includes('error')) {
+                    color = '#f44336';
+                  }
                   return (
-                    <Box key={index} sx={{ mb: 0.5, color: isSuccess ? '#4caf50' : 'inherit' }}>
+                    <Box key={index} sx={{ mb: 0.5, color: color }}>
                       {log}
                     </Box>
                   );
