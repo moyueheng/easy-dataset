@@ -502,6 +502,7 @@
     "title": "Text Chunk",
     "defaultTitle": "Default Title"
   },
+  "documentation": "Documentation",
   "models": {
     "configNotFound": "Model config not found",
     "parseError": "Failed to parse model config",

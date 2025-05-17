@@ -13,9 +13,7 @@ import {
   Tab,
   IconButton,
   useTheme as useMuiTheme,
-  Tooltip,
-  Avatar,
-  Chip
+  Tooltip
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import ModelSelect from './ModelSelect';
@@ -24,12 +22,11 @@ import UpdateChecker from './UpdateChecker';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 // 图标
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import DataObjectIcon from '@mui/icons-material/DataObject';
-import SyncIcon from '@mui/icons-material/Sync';
 import StorageIcon from '@mui/icons-material/Storage';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { toast } from 'sonner';
@@ -39,7 +36,7 @@ import { modelConfigListAtom, selectedModelInfoAtom } from '@/lib/store';
 
 export default function Navbar({ projects = [], currentProject }) {
   const [selectedProject, setSelectedProject] = useState(currentProject || '');
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const pathname = usePathname();
   const theme = useMuiTheme();
   const { resolvedTheme, setTheme } = useTheme();
@@ -124,7 +121,7 @@ export default function Navbar({ projects = [], currentProject }) {
           </Box>
 
           {isProjectDetail && (
-            <FormControl size="small" sx={{ minWidth: 160 }}>
+            <FormControl size="small" sx={{ minWidth: 100 }}>
               <Select
                 value={selectedProject}
                 onChange={handleProjectChange}
@@ -247,7 +244,6 @@ export default function Navbar({ projects = [], currentProject }) {
           {/* 模型选择 */}
           {location.pathname.includes('/projects/') && <ModelSelect projectId={selectedProject} />}
 
-          {/* 数据集广场链接 - 改为图标按钮样式 */}
           <Tooltip title={t('datasetSquare.title')}>
             <IconButton
               component={Link}
@@ -267,6 +263,7 @@ export default function Navbar({ projects = [], currentProject }) {
               <StorageIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+
           {/* 语言切换器 */}
           <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
             <LanguageSwitcher />
@@ -291,6 +288,31 @@ export default function Navbar({ projects = [], currentProject }) {
               ) : (
                 <DarkModeOutlinedIcon fontSize="small" />
               )}
+            </IconButton>
+          </Tooltip>
+
+          {/* 文档链接 */}
+          <Tooltip title={t('documentation')}>
+            <IconButton
+              href={
+                i18n.language === 'zh-CN' ? 'https://docs.easy-dataset.com/' : 'https://docs.easy-dataset.com/ed/en'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              size="small"
+              sx={{
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.15)',
+                color: theme.palette.mode === 'dark' ? 'inherit' : 'white',
+                p: 1,
+                borderRadius: 1.5,
+                '&:hover': {
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.25)'
+                },
+                mr: 1,
+                marginRight: 0
+              }}
+            >
+              <HelpOutlineIcon fontSize="small" />
             </IconButton>
           </Tooltip>
 

@@ -25,7 +25,7 @@
     "loadPromptsFailed": "加载提示词配置失败",
     "savePromptsSuccess": "保存提示词配置成功",
     "savePromptsFailed": "保存提示词配置失败",
-    "title": "设置",
+    "title": "项目设置",
     "basicInfo": "基本信息",
     "modelConfig": "模型配置",
     "taskConfig": "任务配置",
@@ -505,6 +505,7 @@
     "title": "文本块",
     "defaultTitle": "默认标题"
   },
+  "documentation": "文档",
   "models": {
     "configNotFound": "未找到模型配置",
     "parseError": "解析模型配置失败",
