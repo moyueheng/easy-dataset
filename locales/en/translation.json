@@ -392,6 +392,11 @@
     "tokenHelp": "You can get your token from HuggingFace settings page"
   },
   "datasets": {
+    "loadingDataset": "Loading Dataset...",
+    "datasetNotFound": "Dataset Not Found",
+    "optimizeTitle": "AI Optimize",
+    "optimizeAdvice": "Optimize Advice",
+    "optimizePlaceholder": "Please enter your suggestions for improving the answer, and AI will optimize the answer and reasoning chain based on your suggestions",
     "generatingDataset": "Generating Dataset",
     "aiOptimizeAdvicePlaceholder": "Please enter your suggestions for improving the answer, and AI will optimize the answer and reasoning chain based on your suggestions",
     "aiOptimizeAdvice": "Please enter your suggestions for improving the answer, and AI will optimize the answer and reasoning chain based on your suggestions",

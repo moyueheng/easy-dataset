@@ -395,6 +395,11 @@
     "tokenHelp": "您可以从HuggingFace设置页面获取令牌"
   },
   "datasets": {
+    "loadingDataset": "正在加载数据集详情...",
+    "datasetNotFound": "未找到数据集",
+    "optimizeTitle": "AI 优化",
+    "optimizeAdvice": "优化建议",
+    "optimizePlaceholder": "请输入您对答案的改进建议，AI将根据您的建议优化答案和思维链",
     "generatingDataset": "正在生成数据集",
     "aiOptimizeAdvicePlaceholder": "请输入您对答案的改进建议，AI将根据您的建议优化答案和思维链",
     "aiOptimizeAdvice": "请输入您对答案的改进建议，AI将根据您的建议优化答案和思维链",
