@@ -149,6 +149,7 @@
     "backToList": "返回列表",
     "label": "标签",
     "confirmDeleteDescription": "确认删除吗？此操作不可恢复。",
+    "more": "更多",
     "fetchError": "获取数据出错",
     "confirmDeleteQuestion": "确认删除此问题吗？此操作不可恢复。",
     "deleteSuccess": "删除成功",
