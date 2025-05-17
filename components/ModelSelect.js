@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FormControl, Select, MenuItem, useTheme } from '@mui/material';
+import { FormControl, Select, MenuItem, useTheme, ListSubheader } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useAtom, useAtomValue } from 'jotai/index';
 import { modelConfigListAtom, selectedModelInfoAtom } from '@/lib/store';
@@ -111,19 +111,42 @@ export default function ModelSelect({ size = 'small', minWidth = 180, projectId,
         <MenuItem value="" disabled>
           {error ? t('models.pleaseSelectModel') : t('playground.selectModelFirst')}
         </MenuItem>
-        {models
-          .filter(m => {
-            if (m.providerId.toLowerCase() === 'ollama') {
+        {(() => {
+          // 按 provider 分组
+          const filteredModels = models.filter(m => {
+            if (m.providerId?.toLowerCase() === 'ollama') {
               return m.modelName && m.endpoint;
             } else {
               return m.modelName && m.endpoint && m.apiKey;
             }
-          })
-          .map(model => (
-            <MenuItem key={model.id} value={model.id}>
-              {model.modelName}
-            </MenuItem>
-          ))}
+          });
+
+          // 获取所有 provider
+          const providers = [...new Set(filteredModels.map(m => m.providerName || 'Other'))];
+
+          return providers.map(provider => {
+            const providerModels = filteredModels.filter(m => (m.providerName || 'Other') === provider);
+            return [
+              <ListSubheader
+                key={`header-${provider}`}
+                sx={{
+                  pl: 2,
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                  mt: 1,
+                  mb: 0.5
+                }}
+              >
+                {provider || 'Other'}
+              </ListSubheader>,
+              ...providerModels.map(model => (
+                <MenuItem key={model.id} value={model.id} sx={{ pl: 3 }}>
+                  {model.modelName}
+                </MenuItem>
+              ))
+            ];
+          });
+        })()}
       </Select>
     </FormControl>
   );
