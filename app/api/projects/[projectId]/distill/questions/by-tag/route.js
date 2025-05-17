@@ -62,8 +62,6 @@ export async function GET(request, { params }) {
       }
     });
 
-    console.log('[distill/questions/by-tag] 查询到问题数量:', questions.length);
-
     return NextResponse.json(questions);
   } catch (error) {
     console.error('[distill/questions/by-tag] 获取问题失败:', error);
