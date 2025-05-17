@@ -212,7 +212,7 @@ export default function Navbar({ projects = [], currentProject }) {
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', ml: 2, mr: 2 }}>
             <Tabs
               value={
-                pathname.includes('/settings') || pathname.includes('/playground') || pathname.includes('/datasets')
+                pathname.includes('/settings') || pathname.includes('/playground') || pathname.includes('/datasets-sq')
                   ? 'more'
                   : pathname
               }
