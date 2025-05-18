@@ -124,6 +124,7 @@
     "deleteConfirm": "Are you sure you want to delete this question? This action cannot be undone."
   },
   "common": {
+    "help": "Help",
     "jumpTo": "Jump To",
     "unknownError": "Unknown Error",
     "create": "Create",
@@ -567,7 +568,7 @@
     "deleteDirectoryFailed": "Failed to delete project directory"
   },
   "distill": {
-    "title": "Data Distillation",
+    "title": "Distill",
     "generateRootTags": "Generate Root Tags",
     "generateSubTags": "Generate Sub Tags",
     "generateQuestions": "Generate Questions",
@@ -591,6 +592,7 @@
     "selectModelFirst": "Please select a model first",
     "selectModel": "Select Model",
     "generateTagsError": "Failed to generate tags",
+    "generateTags": "Generate Tags",
     "subTags": "sub-tags",
     "questions": "questions",
     "deleteTagConfirmTitle": "Confirm to delete tag?",

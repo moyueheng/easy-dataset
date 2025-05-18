@@ -124,6 +124,7 @@
     "deleteConfirm": "确认要删除这个问题吗？"
   },
   "common": {
+    "help": "帮助",
     "jumpTo": "跳转至",
     "unknownError": "未知错误",
     "create": "创建",
