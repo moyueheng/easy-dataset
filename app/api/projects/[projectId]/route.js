@@ -1,14 +1,15 @@
 // 获取项目详情
-import { deleteProject, getProject, updateProject } from '@/lib/db/projects';
+import { deleteProject, getProject, updateProject, getTaskConfig } from '@/lib/db/projects';
 
 export async function GET(request, { params }) {
   try {
     const { projectId } = params;
     const project = await getProject(projectId);
+    const taskConfig = await getTaskConfig(projectId);
     if (!project) {
       return Response.json({ error: '项目不存在' }, { status: 404 });
     }
-    return Response.json(project);
+    return Response.json({ ...project, taskConfig });
   } catch (error) {
     console.error('获取项目详情出错:', error);
     return Response.json({ error: error.message }, { status: 500 });

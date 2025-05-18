@@ -10,8 +10,11 @@ mock-login-callback.ts
 .env.local
 /src/test/crawler
 /src/test/mock
-/local-db
 /test
 /dist
 /prisma/*.sqlite
 .idea
+!local-db/empty.txt
+/local-db
+
+

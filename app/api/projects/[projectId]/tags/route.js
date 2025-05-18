@@ -75,12 +75,28 @@ export async function DELETE(request, { params }) {
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
+
+    // 获取要删除的标签ID
     const { searchParams } = new URL(request.url);
-    let id = searchParams.get('id');
-    let res = await deleteTag(id);
-    return NextResponse.json(res);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: '标签 ID 是必需的' }, { status: 400 });
+    }
+
+    console.log(`正在删除标签: ${id}`);
+    const result = await deleteTag(id);
+    console.log(`删除标签成功: ${id}`);
+
+    return NextResponse.json({ success: true, message: '删除标签成功', data: result });
   } catch (error) {
-    console.error('Failed to obtain the label tree:', error);
-    return NextResponse.json({ error: error.message || 'Failed to obtain the label tree' }, { status: 500 });
+    console.error('删除标签失败:', error);
+    return NextResponse.json(
+      {
+        error: error.message || '删除标签失败',
+        success: false
+      },
+      { status: 500 }
+    );
   }
 }

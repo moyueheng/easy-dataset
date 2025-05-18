@@ -67,6 +67,7 @@ export async function POST(request, { params }) {
         { status: 404 }
       );
     }
+    const idDistill = chunk.name === 'Distilled Content';
 
     // 获取项目配置
     const project = await getProject(projectId);
@@ -78,12 +79,14 @@ export async function POST(request, { params }) {
     const promptFuc = language === 'en' ? getAnswerEnPrompt : getAnswerPrompt;
 
     // 生成答案的提示词
-    const prompt = promptFuc({
-      text: chunk.content,
-      question: question.question,
-      globalPrompt,
-      answerPrompt
-    });
+    const prompt = idDistill
+      ? question.question
+      : promptFuc({
+          text: chunk.content,
+          question: question.question,
+          globalPrompt,
+          answerPrompt
+        });
 
     // 调用大模型生成答案
     const { answer, cot } = await llmClient.getResponseWithCOT(prompt);
@@ -97,17 +100,17 @@ export async function POST(request, { params }) {
       question: question.question,
       answer: answer,
       model: model.modelName,
-      cot: '',
+      cot: cot,
       questionLabel: question.label || null
     };
 
     let chunkData = await getChunkById(question.chunkId);
     datasets.chunkName = chunkData.name;
-    datasets.chunkContent = chunkData.content;
+    datasets.chunkContent = ''; // 不再保存原始文本块内容
     datasets.questionId = question.id;
 
     let dataset = await createDataset(datasets);
-    if (cot) {
+    if (cot && !idDistill) {
       // 为了性能考虑，这里异步优化
       optimizeCot(question.question, answer, cot, language, llmClient, datasetId, projectId);
     }

@@ -638,6 +638,7 @@ export default function QuestionsPage({ params }) {
             onDeleteQuestion={handleDeleteQuestion}
             onEditQuestion={handleOpenEditDialog}
             projectId={projectId}
+            searchTerm={searchTerm}
           />
         </TabPanel>
       </Paper>

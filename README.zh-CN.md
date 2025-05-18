@@ -2,11 +2,12 @@
 
 ![](./public//imgs/bg2.png)
 
-<img src="https://img.shields.io/badge/版本-1.2.3-blue.svg" alt="版本 1.2.3"/>
-<img src="https://img.shields.io/badge/许可证-Apache--2.0-green.svg" alt="Apache 2.0 许可证"/>
-<img src="https://img.shields.io/badge/Next.js-14.1.0-black" alt="Next.js 14.1.0"/>
-<img src="https://img.shields.io/badge/React-18.2.0-61DAFB" alt="React 18.2.0"/>
-<img src="https://img.shields.io/badge/MUI-5.15.7-007FFF" alt="Material UI 5.15.7"/>
+<img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/ConardLi/easy-dataset">
+<img alt="GitHub Downloads (all assets, all releases)" src="https://img.shields.io/github/downloads/ConardLi/easy-dataset/total">
+<img alt="GitHub Release" src="https://img.shields.io/github/v/release/ConardLi/easy-dataset">
+<img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" alt="AGPL 3.0 License"/>
+<img alt="GitHub contributors" src="https://img.shields.io/github/contributors/ConardLi/easy-dataset">
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/ConardLi/easy-dataset">
 
 **一个强大的大型语言模型微调数据集创建工具**
 
@@ -14,9 +15,9 @@
 
 [功能特点](#功能特点) • [快速开始](#本地运行) • [使用文档](https://docs.easy-dataset.com/) • [贡献](#贡献) • [许可证](#许可证)
 
-</div>
-
 如果喜欢本项目，请给本项目留下 Star⭐️，或者请作者喝杯咖啡呀 => [打赏作者](./public/imgs/aw.jpg) ❤️！
+
+</div>
 
 ## 概述
 
@@ -28,14 +29,20 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
 
 ## 功能特点
 
-- **智能文档处理**：上传 Markdown 文件并自动将其分割为有意义的片段
+- **智能文档处理**：支持 PDF、Markdown、DOCX 等多种格式智能识别和处理
+- **智能文本分割**：支持多种智能文本分割算法、支持自定义可视化分段
 - **智能问题生成**：从每个文本片段中提取相关问题
-- **答案生成**：使用 LLM API 为每个问题生成全面的答案
+- **领域标签**：为数据集智能构建全局领域标签，具备全局理解能力
+- **答案生成**：使用 LLM API 为每个问题生成全面的答案、思维链（COT）
 - **灵活编辑**：在流程的任何阶段编辑问题、答案和数据集
 - **多种导出格式**：以各种格式（Alpaca、ShareGPT）和文件类型（JSON、JSONL）导出数据集
 - **广泛的模型支持**：兼容所有遵循 OpenAI 格式的 LLM API
 - **用户友好界面**：为技术和非技术用户设计的直观 UI
 - **自定义系统提示**：添加自定义系统提示以引导模型响应
+
+## 快速演示
+
+https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 
 ## 本地运行
 
@@ -43,13 +50,13 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
 
 <table style="width: 100%">
   <tr>
-    <td width="25%" align="center">
+    <td width="20%" align="center">
       <b>Windows</b>
     </td>
-    <td width="25%" align="center" colspan="2">
+    <td width="30%" align="center" colspan="2">
       <b>MacOS</b>
     </td>
-    <td width="25%" align="center">
+    <td width="20%" align="center">
       <b>Linux</b>
     </td>
   </tr>
@@ -157,9 +164,9 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
     </tr>
 </table>
 
-1. 在"文本分割"部分上传您的 Markdown 文件；
-2. 查看自动分割的文本片段；
-3. 根据需要调整分段
+1. 在"文本分割"部分上传您的文件（支持 PDF、Markdwon、txt、DOCX）；
+2. 查看和调整自动分割的文本片段；
+3. 查看和调整全局领域树
 
 ### 生成问题
 
@@ -170,8 +177,7 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
     </tr>
 </table>
 
-1. 导航到"问题"部分；
-2. 选择要从中生成问题的文本片段；
+2. 基于文本块批量构造问题；
 3. 查看并编辑生成的问题；
 4. 使用标签树组织问题
 
@@ -184,10 +190,9 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
     </tr>
 </table>
 
-1. 转到"数据集"部分；
-2. 选择要包含在数据集中的问题；
-3. 使用配置的 LLM 生成答案；
-4. 查看并编辑生成的答案
+1. 基于问题批量构造数据集；
+2. 使用配置的 LLM 生成答案；
+3. 查看、编辑并优化生成的答案
 
 ### 导出数据集
 
@@ -201,7 +206,8 @@ Easy Dataset 是一个专为创建大型语言模型（LLM）微调数据集而�
 1. 在数据集部分点击"导出"按钮；
 2. 选择您喜欢的格式（Alpaca 或 ShareGPT）；
 3. 选择文件格式（JSON 或 JSONL）；
-4. 根据需要添加自定义系统提示；5. 导出您的数据集
+4. 根据需要添加自定义系统提示；
+5. 导出您的数据集
 
 ## 项目结构
 
@@ -258,7 +264,11 @@ easy-dataset/
 ## 文档
 
 - 查看本项目的演示视频：[Easy Dataset 演示视频](https://www.bilibili.com/video/BV1y8QpYGE57/)
-- 有关所有功能和 API 的详细文档，请访问我们的[文档站点](https://rncg5jvpme.feishu.cn/wiki/NT7aw7rBfi8HwukHaUTcvrQIn6f)。
+- 有关所有功能和 API 的详细文档，请访问我们的 [文档站点](https://docs.easy-dataset.com/)
+
+## 社区实践
+
+- [Easy Dataset × LLaMA Factory: 让大模型高效学习领域知识](https://buaa-act.feishu.cn/wiki/KY9xwTGs1iqHrRkjXBwcZP9WnL9)
 
 ## 贡献
 
@@ -269,9 +279,13 @@ easy-dataset/
 3. 进行更改
 4. 提交更改（`git commit -m '添加一些惊人的功能'`）
 5. 推送到分支（`git push origin feature/amazing-feature`）
-6. 打开 Pull Request
+6. 打开 Pull Request（提交至 DEV 分支）
 
 请确保适当更新测试并遵守现有的编码风格。
+
+## 加交流群 & 联系作者
+
+https://docs.easy-dataset.com/geng-duo/lian-xi-wo-men
 
 ## 许可证
 
@@ -282,5 +296,5 @@ easy-dataset/
 [![Star History Chart](https://api.star-history.com/svg?repos=ConardLi/easy-dataset&type=Date)](https://www.star-history.com/#ConardLi/easy-dataset&Date)
 
 <div align="center">
-  <sub>由 <a href="https://github.com/ConardLi">ConardLi</a> 用 ❤️ 构建 • 关注我：<a href="https://mp.weixin.qq.com/s/ac9XWvVsaXpSH1HH2x4TRQ">公众号</a>｜<a href="https://space.bilibili.com/474921808">B站</a>｜<a href="https://juejin.cn/user/3949101466785709">掘金</a>｜<a href="https://www.zhihu.com/people/wen-ti-chao-ji-duo-de-xiao-qi">知乎</a></sub>
+  <sub>由 <a href="https://github.com/ConardLi">ConardLi</a> 用 ❤️ 构建 • 关注我：<a href="./public/imgs/weichat.jpg">公众号</a>｜<a href="https://space.bilibili.com/474921808">B站</a>｜<a href="https://juejin.cn/user/3949101466785709">掘金</a>｜<a href="https://www.zhihu.com/people/wen-ti-chao-ji-duo-de-xiao-qi">知乎</a>｜<a href="https://www.youtube.com/@garden-conard">Youtube</a></sub>
 </div>

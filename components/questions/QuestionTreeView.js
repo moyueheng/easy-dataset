@@ -41,7 +41,8 @@ export default function QuestionTreeView({
   onSelectQuestion,
   onDeleteQuestion,
   onEditQuestion,
-  projectId
+  projectId,
+  searchTerm
 }) {
   const { t } = useTranslation();
   const [expandedTags, setExpandedTags] = useState({});
@@ -49,18 +50,32 @@ export default function QuestionTreeView({
   const [processingQuestions, setProcessingQuestions] = useState({});
   const { generateSingleDataset } = useGenerateDataset();
   const [questions, setQuestions] = useState([]);
+  const [loadedTags, setLoadedTags] = useState({});
   // 初始化时，将所有标签设置为收起状态（而不是展开状态）
   useEffect(() => {
-    async function fetchQuestions() {
+    async function fetchTagsInfo() {
       try {
-        const response = await axios.get(`/api/projects/${projectId}/questions?all=1`);
-        setQuestions(response.data);
+        // 获取标签信息，仅用于标签统计
+        const response = await axios.get(`/api/projects/${projectId}/questions/tree?tagsOnly=true&input=${searchTerm}`);
+        setQuestions(response.data); // 设置数据仅用于标签统计
+
+        // 当搜索条件变化时，重新加载已展开标签的问题数据
+        const expandedTagLabels = Object.entries(expandedTags)
+          .filter(([_, isExpanded]) => isExpanded)
+          .map(([label]) => label);
+
+        // 重新加载已展开标签的数据
+        for (const label of expandedTagLabels) {
+          fetchTagQuestions(label);
+        }
       } catch (error) {
-        console.error('获取问题失败:', error);
+        console.error('获取标签信息失败:', error);
       }
     }
 
-    fetchQuestions();
+    if (projectId) {
+      fetchTagsInfo();
+    }
 
     const initialExpandedState = {};
     const processTag = tag => {
@@ -163,12 +178,64 @@ export default function QuestionTreeView({
   }, [questions, tags]);
 
   // 处理展开/折叠标签 - 使用 useCallback 优化
-  const handleToggleExpand = useCallback(tagLabel => {
-    setExpandedTags(prev => ({
-      ...prev,
-      [tagLabel]: !prev[tagLabel]
-    }));
-  }, []);
+  const handleToggleExpand = useCallback(
+    tagLabel => {
+      // 检查是否需要加载此标签的问题数据
+      const shouldExpand = !expandedTags[tagLabel];
+
+      if (shouldExpand && !loadedTags[tagLabel]) {
+        // 如果要展开且尚未加载数据，则加载数据
+        fetchTagQuestions(tagLabel);
+      }
+
+      setExpandedTags(prev => ({
+        ...prev,
+        [tagLabel]: shouldExpand
+      }));
+    },
+    [expandedTags, loadedTags, projectId]
+  );
+
+  // 获取特定标签的问题数据
+  const fetchTagQuestions = useCallback(
+    async tagLabel => {
+      try {
+        const response = await axios.get(
+          `/api/projects/${projectId}/questions/tree?tag=${encodeURIComponent(tagLabel)}${searchTerm ? `&input=${searchTerm}` : ''}`
+        );
+
+        // 更新问题数据，合并新获取的数据
+        setQuestions(prev => {
+          // 创建一个新数组，包含现有数据
+          const updatedQuestions = [...prev];
+
+          // 添加新获取的问题数据
+          response.data.forEach(newQuestion => {
+            // 检查是否已存在相同 ID 的问题
+            const existingIndex = updatedQuestions.findIndex(q => q.id === newQuestion.id);
+            if (existingIndex === -1) {
+              // 如果不存在，添加到数组
+              updatedQuestions.push(newQuestion);
+            } else {
+              // 如果已存在，更新数据
+              updatedQuestions[existingIndex] = newQuestion;
+            }
+          });
+
+          return updatedQuestions;
+        });
+
+        // 标记该标签已加载数据
+        setLoadedTags(prev => ({
+          ...prev,
+          [tagLabel]: true
+        }));
+      } catch (error) {
+        console.error(`获取标签 "${tagLabel}" 的问题失败:`, error);
+      }
+    },
+    [projectId, searchTerm, expandedTags]
+  );
 
   // 检查问题是否被选中 - 使用 useCallback 优化
   const isQuestionSelected = useCallback(
@@ -401,7 +468,7 @@ const QuestionItem = memo(
             }
             secondary={
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                {t('datasets.source')}: {question.chunk.name || question.chunkId}
+                {t('datasets.source')}: {question.chunk?.name || question.chunkId || t('common.unknown')}
               </Typography>
             }
           />

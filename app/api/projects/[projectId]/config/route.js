@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getProject, updateProject } from '@/lib/db/projects';
+import { getProject, updateProject, getTaskConfig } from '@/lib/db/projects';
 
 // 获取项目配置
 export async function GET(request, { params }) {
   try {
     const projectId = params.projectId;
     const config = await getProject(projectId);
-    return NextResponse.json(config);
+    const taskConfig = await getTaskConfig(projectId);
+    return NextResponse.json({ ...config, ...taskConfig });
   } catch (error) {
     console.error('获取项目配置失败:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
