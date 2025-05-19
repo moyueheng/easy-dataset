@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { getProjectRoot } from '@/lib/db/base';
 import { getTaskConfig } from '@/lib/db/projects';
+import { PrismaClient } from '@prisma/client';
 
 // 获取任务配置
 export async function GET(request, { params }) {

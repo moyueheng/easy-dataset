@@ -199,6 +199,7 @@
     "openDirectory": "打开项目目录"
   },
   "textSplit": {
+    "exportChunks": "导出文本块",
     "allChunks": "全部文本块",
     "generatedQuestions2": "已生成问题",
     "ungeneratedQuestions": "未生成问题",

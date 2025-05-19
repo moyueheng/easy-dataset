@@ -196,6 +196,7 @@
     "deleteConfirmTitle": "Confirm Delete"
   },
   "textSplit": {
+    "exportChunks": "Export Chunks",
     "allChunks": "All Text Chunks",
     "generatedQuestions2": "With Questions",
     "ungeneratedQuestions": "Without Questions",

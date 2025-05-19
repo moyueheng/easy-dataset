@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import ModelSelect from './ModelSelect';
 import LanguageSwitcher from './LanguageSwitcher';
 import UpdateChecker from './UpdateChecker';
+import TaskIcon from './TaskIcon';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -434,6 +435,9 @@ export default function Navbar({ projects = [], currentProject }) {
               <GitHubIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+
+          {/* 任务图标 - 仅在项目页面显示 */}
+          {location.pathname.includes('/projects/') && <TaskIcon projectId={selectedProject} />}
 
           {/* 更新检查器 */}
           <UpdateChecker />

@@ -66,7 +66,7 @@ export default function TextSplitPage({ params }) {
 
   // 加载文本块数据
   useEffect(() => {
-    fetchChunks();
+    fetchChunks('all');
   }, [fetchChunks]);
 
   // 处理标签切换
@@ -111,7 +111,7 @@ export default function TextSplitPage({ params }) {
 
   // 处理筛选器变更
   useEffect(() => {
-    fetchChunks();
+    fetchChunks(questionFilter);
   }, [questionFilter, fetchChunks]);
 
   const handleSelected = array => {
@@ -170,6 +170,7 @@ export default function TextSplitPage({ params }) {
             loading={loading}
             questionFilter={questionFilter}
             setQuestionFilter={setQuestionFilter}
+            selectedModel={selectedModelInfo}
           />
         )}
 
