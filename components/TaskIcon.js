@@ -9,11 +9,10 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 // 任务图标组件
-export default function TaskIcon({ projectId }) {
+export default function TaskIcon({ projectId, theme }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
 
   // 获取项目的未完成任务列表
@@ -21,15 +20,13 @@ export default function TaskIcon({ projectId }) {
     if (!projectId) return;
 
     try {
-      setLoading(true);
+      // 移除 loading 状态设置，避免在请求数据时显示 loading 图标
       const response = await axios.get(`/api/projects/${projectId}/tasks/list?status=0`);
       if (response.data?.code === 0) {
         setTasks(response.data.data || []);
       }
     } catch (error) {
       console.error('获取任务列表失败:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -59,20 +56,18 @@ export default function TaskIcon({ projectId }) {
 
   // 图标渲染逻辑
   const renderTaskIcon = () => {
-    if (loading) {
-      return <CircularProgress size={20} color="inherit" />;
-    }
-
     const pendingTasks = tasks.filter(task => task.status === 0);
 
     if (pendingTasks.length > 0) {
+      // 当有任务处理中时，显示 loading 状态同时保留徽标
       return (
         <Badge badgeContent={pendingTasks.length} color="error">
-          <PendingActionsIcon fontSize="small" />
+          <CircularProgress size={20} color="inherit" />
         </Badge>
       );
     }
 
+    // 没有处理中的任务时，显示完成图标
     return <TaskAltIcon fontSize="small" />;
   };
 
@@ -81,10 +76,10 @@ export default function TaskIcon({ projectId }) {
     const pendingTasks = tasks.filter(task => task.status === 0);
 
     if (pendingTasks.length > 0) {
-      return t('tasks.tooltip.pending', { count: pendingTasks.length });
+      return t('tasks.pending', { count: pendingTasks.length });
     }
 
-    return t('tasks.tooltip.completed');
+    return t('tasks.completed');
   };
 
   if (!projectId) return null;
@@ -95,13 +90,14 @@ export default function TaskIcon({ projectId }) {
         onClick={handleOpenTaskList}
         size="small"
         sx={{
-          bgcolor: 'rgba(255, 255, 255, 0.05)',
-          color: 'inherit',
+          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.15)',
+          color: theme.palette.mode === 'dark' ? 'inherit' : 'white',
           p: 1,
           borderRadius: 1.5,
           '&:hover': {
-            bgcolor: 'rgba(255, 255, 255, 0.1)'
-          }
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.25)'
+          },
+          ml: 2
         }}
       >
         {renderTaskIcon()}

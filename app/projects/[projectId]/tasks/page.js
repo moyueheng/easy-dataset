@@ -31,6 +31,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import TaskIcon from '@mui/icons-material/Task';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
@@ -39,7 +40,8 @@ import { zhCN, enUS } from 'date-fns/locale';
 const TASK_STATUS = {
   0: { label: '处理中', color: 'warning' },
   1: { label: '已完成', color: 'success' },
-  2: { label: '失败', color: 'error' }
+  2: { label: '失败', color: 'error' },
+  3: { label: '已中断', color: 'default' }
 };
 
 // 任务类型映射
@@ -121,6 +123,29 @@ export default function TasksPage({ params }) {
     } catch (error) {
       console.error('删除任务失败:', error);
       toast.error('删除任务失败');
+    }
+  };
+
+  // 中断任务
+  const handleAbortTask = async taskId => {
+    if (!confirm('确认中断该任务？任务将停止执行。')) return;
+
+    try {
+      const response = await axios.patch(`/api/projects/${projectId}/tasks/${taskId}`, {
+        status: 3, // 3 表示已中断
+        detail: '任务已被手动中断',
+        note: '任务已被手动中断'
+      });
+
+      if (response.data?.code === 0) {
+        toast.success('任务已中断');
+        fetchTasks();
+      } else {
+        toast.error('中断任务失败');
+      }
+    } catch (error) {
+      console.error('中断任务失败:', error);
+      toast.error('中断任务失败');
     }
   };
 
@@ -270,21 +295,20 @@ export default function TasksPage({ params }) {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Tooltip title="查看详情" arrow>
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            toast.info('功能开发中');
-                          }}
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="删除任务" arrow>
-                        <IconButton size="small" onClick={() => handleDeleteTask(task.id)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* 只在任务处理中时显示中断按钮 */}
+                      {task.status === 0 ? (
+                        <Tooltip title="中断任务" arrow>
+                          <IconButton size="small" onClick={() => handleAbortTask(task.id)}>
+                            <StopCircleIcon fontSize="small" color="warning" />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="删除任务" arrow>
+                          <IconButton size="small" onClick={() => handleDeleteTask(task.id)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

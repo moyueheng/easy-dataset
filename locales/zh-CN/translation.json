@@ -637,5 +637,9 @@
     "datasetsProgress": "数据集生成进度",
     "rootTopicHelperText": "默认以项目名称作为顶级蒸馏主题，如需更改，请到项目设置中更改项目名称。",
     "addChildTag": "生成子标签"
+  },
+  "tasks": {
+    "pending": "有 {{count}} 个任务处理中",
+    "completed": "全部任务已完成"
   }
 }

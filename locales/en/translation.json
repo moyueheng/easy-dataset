@@ -636,5 +636,9 @@
     "datasetsProgress": "Datasets Progress",
     "rootTopicHelperText": "By default, the project name is used as the top-level distillation theme. If you need to change it, please go to the project settings to modify the project name.",
     "addChildTag": "Add Child Tag"
+  },
+  "tasks": {
+    "pending": "{{count}} tasks are processing",
+    "completed": "tasks are completed"
   }
 }

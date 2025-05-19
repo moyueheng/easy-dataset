@@ -364,9 +364,11 @@ export default function Navbar({ projects = [], currentProject }) {
         <Box sx={{ display: 'flex', flexGrow: 0, alignItems: 'center', gap: 1.5 }}>
           {/* 模型选择 */}
           {location.pathname.includes('/projects/') && <ModelSelect projectId={selectedProject} />}
+          {/* 任务图标 - 仅在项目页面显示 */}
+          {location.pathname.includes('/projects/') && <TaskIcon theme={theme} projectId={selectedProject} />}
 
           {/* 语言切换器 */}
-          <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <LanguageSwitcher />
           </Box>
           {/* 主题切换按钮 */}
@@ -435,9 +437,6 @@ export default function Navbar({ projects = [], currentProject }) {
               <GitHubIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-
-          {/* 任务图标 - 仅在项目页面显示 */}
-          {location.pathname.includes('/projects/') && <TaskIcon projectId={selectedProject} />}
 
           {/* 更新检查器 */}
           <UpdateChecker />

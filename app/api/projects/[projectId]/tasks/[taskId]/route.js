@@ -98,8 +98,8 @@ export async function PATCH(request, { params }) {
       updateData.note = note;
     }
 
-    // 如果状态变为已完成或失败，自动添加结束时间
-    if (status === 1 || status === 2) {
+    // 如果状态变为已完成、失败或已中断，自动添加结束时间
+    if (status === 1 || status === 2 || status === 3) {
       updateData.endTime = endTime || new Date();
     }
 

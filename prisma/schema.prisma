@@ -148,7 +148,7 @@ model Task {
   project         Projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId       String
   taskType        String    // 任务类型: text-processing, question-generation, answer-generation, data-distillation
-  status          Int       // 任务状态: 0-处理中, 1-已完成, 2-失败
+  status          Int       // 任务状态: 0-处理中, 1-已完成, 2-失败, 3-已中断
   startTime       DateTime  @default(now())
   endTime         DateTime?
   completedCount  Int       @default(0)
