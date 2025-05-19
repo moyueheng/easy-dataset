@@ -76,14 +76,25 @@ export default function TextSplitPage({ params }) {
 
   // 文件上传成功的包装函数
   const handleUploadSuccess = async (fileNames, pdfFiles, domainTreeAction) => {
-    // 处理PDF文件
-    if (pdfFiles && pdfFiles.length > 0) {
-      await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel, setError);
-    }
+    // 设置页面加载状态为 true
+    setLoading(true);
 
-    // 处理文本分割
-    if (fileNames && fileNames.length > 0) {
-      await handleSplitText(fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+    try {
+      // 处理PDF文件
+      if (pdfFiles && pdfFiles.length > 0) {
+        await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel, setError);
+      }
+
+      // 处理文本分割
+      if (fileNames && fileNames.length > 0) {
+        await handleSplitText(fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+      }
+    } catch (error) {
+      console.error('文件处理错误:', error);
+      setError(error.message || '文件处理过程中发生错误');
+    } finally {
+      // 完成后设置页面加载状态为 false
+      location.reload();
     }
   };
 
