@@ -640,6 +640,56 @@
   },
   "tasks": {
     "pending": "有 {{count}} 个任务处理中",
-    "completed": "全部任务已完成"
+    "completed": "全部任务已完成",
+    "title": "任务管理中心",
+    "loading": "加载任务列表...",
+    "empty": "暂无任务记录",
+    "confirmDelete": "确认删除该任务？",
+    "confirmAbort": "确认中断该任务？任务将停止执行。",
+    "deleteSuccess": "任务已删除",
+    "deleteFailed": "删除任务失败",
+    "abortSuccess": "任务已中断",
+    "abortFailed": "中断任务失败",
+    "status": {
+      "processing": "处理中",
+      "completed": "已完成",
+      "failed": "失败",
+      "aborted": "已中断",
+      "unknown": "未知"
+    },
+    "types": {
+      "text-processing": "文献处理",
+      "question-generation": "问题生成",
+      "answer-generation": "答案生成",
+      "data-distillation": "数据蒸馈"
+    },
+    "filters": {
+      "status": "任务状态",
+      "type": "任务类型"
+    },
+    "actions": {
+      "refresh": "刷新任务列表",
+      "delete": "删除任务",
+      "abort": "中断任务"
+    },
+    "table": {
+      "type": "任务类型",
+      "status": "状态",
+      "progress": "进度",
+      "success": "成功数量",
+      "failed": "失败数量",
+      "createTime": "创建时间",
+      "endTime": "完成时间",
+      "duration": "运行时间",
+      "model": "使用模型",
+      "detail": "任务详情",
+      "actions": "操作"
+    },
+    "duration": {
+      "seconds": "{{seconds}}秒",
+      "minutes": "{{minutes}}分 {{seconds}}秒",
+      "hours": "{{hours}}小时 {{minutes}}分"
+    },
+    "fetchFailed": "获取任务列表失败"
   }
 }

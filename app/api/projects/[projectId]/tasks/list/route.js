@@ -14,6 +14,10 @@ export async function GET(request, { params }) {
     const taskType = searchParams.get('taskType');
     const statusStr = searchParams.get('status');
 
+    // 分页参数
+    const page = parseInt(searchParams.get('page') || '0');
+    const limit = parseInt(searchParams.get('limit') || '10');
+
     // 构建查询条件
     const where = { projectId };
 
@@ -25,17 +29,25 @@ export async function GET(request, { params }) {
       where.status = parseInt(statusStr);
     }
 
-    // 获取任务列表，按创建时间降序排序
+    // 获取任务总数
+    const total = await prisma.task.count({ where });
+
+    // 获取任务列表，按创建时间降序排序，并应用分页
     const tasks = await prisma.task.findMany({
       where,
       orderBy: {
         createAt: 'desc'
-      }
+      },
+      skip: page * limit,
+      take: limit
     });
 
     return NextResponse.json({
       code: 0,
       data: tasks,
+      total,
+      page,
+      limit,
       message: '任务列表获取成功'
     });
   } catch (error) {
