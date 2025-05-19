@@ -128,7 +128,7 @@ export default function ChunkListHeader({
             disabled={!projectId || !selectedModel?.id}
             sx={{ mr: 1 }}
           >
-            {t('textSplit.autoGenerateQuestions', { defaultValue: '自动提取问题' })}
+            {t('textSplit.autoGenerateQuestions')}
           </Button>
         </Tooltip>
 
