@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
  * @param {Function} props.onGenerateQuestions - Generate questions callback
  * @param {string} props.questionFilter - Question filter
  * @param {Function} props.onQuestionFilterChange - Question filter change callback
+ * @param {Object} props.selectedModel - 选中的模型信息
  */
 export default function ChunkList({
   projectId,
@@ -28,7 +29,8 @@ export default function ChunkList({
   onGenerateQuestions,
   loading = false,
   questionFilter,
-  setQuestionFilter
+  setQuestionFilter,
+  selectedModel
 }) {
   const theme = useTheme();
   const [page, setPage] = useState(1);
@@ -38,11 +40,25 @@ export default function ChunkList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chunkToDelete, setChunkToDelete] = useState(null);
 
+  // 对文本块进行排序，按照part-后面的数字大小排序
+  const sortedChunks = [...chunks].sort((a, b) => {
+    // 提取part-后面的数字
+    const getPartNumber = name => {
+      const match = name.match(/part-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    };
+
+    const numA = getPartNumber(a.name);
+    const numB = getPartNumber(b.name);
+
+    return numA - numB;
+  });
+
   const itemsPerPage = 5;
   const startIndex = (page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const displayedChunks = chunks.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(chunks.length / itemsPerPage);
+  const displayedChunks = sortedChunks.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(sortedChunks.length / itemsPerPage);
   const { t } = useTranslation();
 
   const handlePageChange = (event, value) => {
@@ -128,6 +144,7 @@ export default function ChunkList({
   return (
     <Box>
       <ChunkListHeader
+        projectId={projectId}
         totalChunks={chunks.length}
         selectedChunks={selectedChunks}
         onSelectAll={handleSelectAll}
@@ -135,6 +152,7 @@ export default function ChunkList({
         questionFilter={questionFilter}
         setQuestionFilter={event => setQuestionFilter(event.target.value)}
         chunks={chunks}
+        selectedModel={selectedModel}
       />
 
       <Grid container spacing={2}>

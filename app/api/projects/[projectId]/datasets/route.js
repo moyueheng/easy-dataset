@@ -1,33 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getQuestionById, updateQuestion } from '@/lib/db/questions';
-import {
-  createDataset,
-  deleteDataset,
-  getDatasetsById,
-  getDatasetsByPagination,
-  getDatasetsIds,
-  updateDataset
-} from '@/lib/db/datasets';
-import { getProject } from '@/lib/db/projects';
-import getAnswerPrompt from '@/lib/llm/prompts/answer';
-import getAnswerEnPrompt from '@/lib/llm/prompts/answerEn';
-import getOptimizeCotPrompt from '@/lib/llm/prompts/optimizeCot';
-import getOptimizeCotEnPrompt from '@/lib/llm/prompts/optimizeCotEn';
-import { getChunkById } from '@/lib/db/chunks';
-import { nanoid } from 'nanoid';
+import { deleteDataset, getDatasetsByPagination, getDatasetsIds } from '@/lib/db/datasets';
+import datasetService from '@/lib/services/datasets';
 
-const LLMClient = require('@/lib/llm/core');
-
-async function optimizeCot(originalQuestion, answer, originalCot, language, llmClient, id, projectId) {
-  const prompt =
-    language === 'en'
-      ? getOptimizeCotEnPrompt(originalQuestion, answer, originalCot)
-      : getOptimizeCotPrompt(originalQuestion, answer, originalCot);
-  const { answer: as, cot } = await llmClient.getResponseWithCOT(prompt);
-  const optimizedAnswer = as || cot;
-  const result = await updateDataset({ id, cot: optimizedAnswer.replace('优化后的思维链', '') });
-  console.log(originalQuestion, id, 'Successfully optimized thought process', result);
-}
+// 优化思维链函数已移至服务层
 
 /**
  * 生成数据集（为单个问题生成答案）
@@ -36,93 +11,14 @@ export async function POST(request, { params }) {
   try {
     const { projectId } = params;
     const { questionId, model, language } = await request.json();
-    // 验证参数
-    if (!projectId || !questionId || !model) {
-      return NextResponse.json(
-        {
-          error: '缺少必要参数'
-        },
-        { status: 400 }
-      );
-    }
 
-    // 获取问题
-    const question = await getQuestionById(questionId);
-    if (!question) {
-      return NextResponse.json(
-        {
-          error: 'Question not found'
-        },
-        { status: 404 }
-      );
-    }
-
-    // 获取文本块内容
-    const chunk = await getChunkById(question.chunkId);
-    if (!chunk) {
-      return NextResponse.json(
-        {
-          error: 'Text block does not exist'
-        },
-        { status: 404 }
-      );
-    }
-    const idDistill = chunk.name === 'Distilled Content';
-
-    // 获取项目配置
-    const project = await getProject(projectId);
-    const { globalPrompt, answerPrompt } = project;
-
-    // 创建LLM客户端
-    const llmClient = new LLMClient(model);
-
-    const promptFuc = language === 'en' ? getAnswerEnPrompt : getAnswerPrompt;
-
-    // 生成答案的提示词
-    const prompt = idDistill
-      ? question.question
-      : promptFuc({
-          text: chunk.content,
-          question: question.question,
-          globalPrompt,
-          answerPrompt
-        });
-
-    // 调用大模型生成答案
-    const { answer, cot } = await llmClient.getResponseWithCOT(prompt);
-
-    const datasetId = nanoid(12);
-
-    // 创建新的数据集项
-    const datasets = {
-      id: datasetId,
-      projectId: projectId,
-      question: question.question,
-      answer: answer,
-      model: model.modelName,
-      cot: cot,
-      questionLabel: question.label || null
-    };
-
-    let chunkData = await getChunkById(question.chunkId);
-    datasets.chunkName = chunkData.name;
-    datasets.chunkContent = ''; // 不再保存原始文本块内容
-    datasets.questionId = question.id;
-
-    let dataset = await createDataset(datasets);
-    if (cot && !idDistill) {
-      // 为了性能考虑，这里异步优化
-      optimizeCot(question.question, answer, cot, language, llmClient, datasetId, projectId);
-    }
-    if (dataset) {
-      await updateQuestion({ id: questionId, answered: true });
-    }
-    console.log('Successfully generated dataset', question.question);
-
-    return NextResponse.json({
-      success: true,
-      dataset
+    // 使用数据集生成服务
+    const result = await datasetService.generateDatasetForQuestion(projectId, questionId, {
+      model,
+      language
     });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Failed to generate dataset:', error);
     return NextResponse.json(

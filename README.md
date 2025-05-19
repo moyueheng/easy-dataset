@@ -25,7 +25,7 @@ Easy Dataset is an application specifically designed for creating fine-tuning da
 
 With Easy Dataset, you can transform domain knowledge into structured datasets, compatible with all LLM APIs that follow the OpenAI format, making the fine-tuning process simple and efficient.
 
-![](./public/imgs/cn-arc.png)
+![](./public/imgs/en-arc.png)
 
 ## Features
 

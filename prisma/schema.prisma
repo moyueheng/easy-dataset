@@ -27,6 +27,7 @@ model Projects {
   ModelConfig          ModelConfig[]
   UploadFiles          UploadFiles[]
   Tags                 Tags[]
+  Task                 Task[]
 }
 
 model UploadFiles {
@@ -140,4 +141,24 @@ model ModelConfig {
   status       Int
   createAt     DateTime @default(now())
   updateAt     DateTime @updatedAt
+}
+
+model Task {
+  id              String    @id @default(nanoid())
+  project         Projects  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId       String
+  taskType        String    // 任务类型: text-processing, question-generation, answer-generation, data-distillation
+  status          Int       // 任务状态: 0-处理中, 1-已完成, 2-失败, 3-已中断
+  startTime       DateTime  @default(now())
+  endTime         DateTime?
+  completedCount  Int       @default(0)
+  totalCount      Int       @default(0)
+  modelInfo       String    // JSON格式存储，包含使用的模型信息
+  language        String    @default("zh-CN")
+  detail          String    @default("") // 任务详情
+  note            String    @default("") // 任务备注
+  createAt        DateTime  @default(now())
+  updateAt        DateTime  @updatedAt
+  
+  @@index([projectId])
 }

@@ -1,0 +1,107 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Badge, IconButton, Tooltip, Box, CircularProgress } from '@mui/material';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+
+// 任务图标组件
+export default function TaskIcon({ projectId, theme }) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const [tasks, setTasks] = useState([]);
+  const [polling, setPolling] = useState(false);
+
+  // 获取项目的未完成任务列表
+  const fetchPendingTasks = async () => {
+    if (!projectId) return;
+
+    try {
+      // 移除 loading 状态设置，避免在请求数据时显示 loading 图标
+      const response = await axios.get(`/api/projects/${projectId}/tasks/list?status=0`);
+      if (response.data?.code === 0) {
+        setTasks(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('获取任务列表失败:', error);
+    }
+  };
+
+  // 初始化时获取任务列表
+  useEffect(() => {
+    if (projectId) {
+      fetchPendingTasks();
+
+      // 启动轮询
+      const intervalId = setInterval(() => {
+        fetchPendingTasks();
+      }, 10000); // 每10秒轮询一次
+
+      setPolling(true);
+
+      return () => {
+        clearInterval(intervalId);
+        setPolling(false);
+      };
+    }
+  }, [projectId]);
+
+  // 打开任务列表页面
+  const handleOpenTaskList = () => {
+    router.push(`/projects/${projectId}/tasks`);
+  };
+
+  // 图标渲染逻辑
+  const renderTaskIcon = () => {
+    const pendingTasks = tasks.filter(task => task.status === 0);
+
+    if (pendingTasks.length > 0) {
+      // 当有任务处理中时，显示 loading 状态同时保留徽标
+      return (
+        <Badge badgeContent={pendingTasks.length} color="error">
+          <CircularProgress size={20} color="inherit" />
+        </Badge>
+      );
+    }
+
+    // 没有处理中的任务时，显示完成图标
+    return <TaskAltIcon fontSize="small" />;
+  };
+
+  // 悬停提示文本
+  const getTooltipText = () => {
+    const pendingTasks = tasks.filter(task => task.status === 0);
+
+    if (pendingTasks.length > 0) {
+      return t('tasks.pending', { count: pendingTasks.length });
+    }
+
+    return t('tasks.completed');
+  };
+
+  if (!projectId) return null;
+
+  return (
+    <Tooltip title={getTooltipText()}>
+      <IconButton
+        onClick={handleOpenTaskList}
+        size="small"
+        sx={{
+          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.15)',
+          color: theme.palette.mode === 'dark' ? 'inherit' : 'white',
+          p: 1,
+          borderRadius: 1.5,
+          '&:hover': {
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.25)'
+          },
+          ml: 2
+        }}
+      >
+        {renderTaskIcon()}
+      </IconButton>
+    </Tooltip>
+  );
+}
