@@ -140,11 +140,14 @@ async function updateDatabase(userDataPath, resourcesPath, isDev, logger = conso
     // 执行SQL更新
     logger(`发现 ${sqlsToExecute.length} 个数据库更新，开始执行...`);
     for (const item of sqlsToExecute) {
-      logger(`执行版本 ${item.version} 的SQL更新: ${item.sql.substring(0, 100)}...`);
-      await executeSql(dbUrl, item.sql);
-
-      // 添加到用户SQL配置
-      userSqlConfig.push(item);
+      try {
+        logger(`执行版本 ${item.version} 的SQL更新: ${item.sql.substring(0, 100)}...`);
+        await executeSql(dbUrl, item.sql);
+        // 添加到用户SQL配置
+        userSqlConfig.push(item);
+      } catch (error) {
+        logger(`执行版本 ${item.version} 的SQL更新失败: ${error.message}`);
+      }
     }
 
     // 更新用户SQL配置文件

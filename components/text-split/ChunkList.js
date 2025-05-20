@@ -40,9 +40,14 @@ export default function ChunkList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chunkToDelete, setChunkToDelete] = useState(null);
 
-  // 对文本块进行排序，按照part-后面的数字大小排序
+  // 对文本块进行排序，先按文件ID排序，再按part-后面的数字排序
   const sortedChunks = [...chunks].sort((a, b) => {
-    // 提取part-后面的数字
+    // 先按fileId排序
+    if (a.fileId !== b.fileId) {
+      return a.fileId.localeCompare(b.fileId);
+    }
+
+    // 同一文件内，再按part-后面的数字排序
     const getPartNumber = name => {
       const match = name.match(/part-(\d+)/);
       return match ? parseInt(match[1], 10) : 0;
