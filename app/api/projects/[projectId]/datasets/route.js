@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
-import { deleteDataset, getDatasetsByPagination, getDatasetsIds } from '@/lib/db/datasets';
+import {
+  deleteDataset,
+  getDatasetsByPagination,
+  getDatasetsIds,
+  getDatasetsById,
+  updateDataset
+} from '@/lib/db/datasets';
 import datasetService from '@/lib/services/datasets';
 
 // 优化思维链函数已移至服务层
