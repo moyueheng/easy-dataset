@@ -44,7 +44,7 @@ export default function TextSplitPage({ params }) {
     addChunks,
     updateTocData,
     setLoading
-  } = useChunks(projectId);
+  } = useChunks(projectId, questionFilter);
 
   const {
     processing,
@@ -122,8 +122,18 @@ export default function TextSplitPage({ params }) {
 
   // 处理筛选器变更
   useEffect(() => {
+    // 更新 URL 中的 filter 参数
+    const url = new URL(window.location.href);
+    if (questionFilter !== 'all') {
+      url.searchParams.set('filter', questionFilter);
+    } else {
+      url.searchParams.delete('filter');
+    }
+    window.history.replaceState({}, '', url);
+
+    // 获取数据
     fetchChunks(questionFilter);
-  }, [questionFilter, fetchChunks]);
+  }, [questionFilter]); // 移除了 fetchChunks 依赖，避免不必要的重渲染
 
   const handleSelected = array => {
     if (array.length > 0) {

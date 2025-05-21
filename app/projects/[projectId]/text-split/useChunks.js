@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 /**
  * 文本块管理的自定义Hook
  * @param {string} projectId - 项目ID
+ * @param {string} [currentFilter='all'] - 当前筛选条件
  * @returns {Object} - 文本块状态和操作方法
  */
-export default function useChunks(projectId) {
+export default function useChunks(projectId, currentFilter = 'all') {
   const { t } = useTranslation();
   const [chunks, setChunks] = useState([]);
   const [tocData, setTocData] = useState('');
@@ -46,7 +47,7 @@ export default function useChunks(projectId) {
         setLoading(false);
       }
     },
-    [projectId, t]
+    [projectId, t, setLoading, setError, setChunks, setTocData]
   );
 
   /**
@@ -99,8 +100,11 @@ export default function useChunks(projectId) {
           throw new Error(errorData.error || t('textSplit.editChunkFailed'));
         }
 
-        // 更新成功后刷新文本块列表
-        await fetchChunks();
+        // 更新成功后使用当前筛选条件刷新文本块列表
+        // 直接从 URL 获取当前筛选参数，确保获取到的是最新的值
+        const url = new URL(window.location.href);
+        const filterParam = url.searchParams.get('filter') || 'all';
+        await fetchChunks(filterParam);
 
         setError({
           severity: 'success',

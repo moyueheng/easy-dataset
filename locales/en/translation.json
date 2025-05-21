@@ -359,6 +359,13 @@
     }
   },
   "export": {
+    "alpacaSettings": "Alpaca Format Settings",
+    "questionFieldType": "Question Field Type",
+    "useInstruction": "Use instruction field",
+    "useInput": "Use input field",
+    "customInstruction": "Custom Instruction Content",
+    "instructionPlaceholder": "Enter fixed instruction content",
+    "instructionHelperText": "When using input field, you can specify fixed instruction content here",
     "title": "Export Dataset",
     "format": "Format",
     "fileFormat": "File Format",
