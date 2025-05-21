@@ -29,6 +29,8 @@ const LocalExportTab = ({
   confirmedOnly,
   includeCOT,
   customFields,
+  alpacaFieldType,
+  customInstruction,
   handleFileFormatChange,
   handleFormatChange,
   handleSystemPromptChange,
@@ -37,6 +39,8 @@ const LocalExportTab = ({
   handleCustomFieldChange,
   handleIncludeLabelsChange,
   handleIncludeChunkChange,
+  handleAlpacaFieldTypeChange,
+  handleCustomInstructionChange,
   handleExport
 }) => {
   const theme = useTheme();
@@ -69,23 +73,45 @@ const LocalExportTab = ({
   // CSV 自定义格式化示例
   const getPreviewData = () => {
     if (formatType === 'alpaca') {
-      return {
-        headers: ['instruction', 'input', 'output', 'system'],
-        rows: [
-          {
-            instruction: '人类指令（必填）',
-            input: '人类输入（选填）',
-            output: '模型回答（必填）',
-            system: '系统提示词（选填）'
-          },
-          {
-            instruction: '第二个指令',
-            input: '',
-            output: '第二个回答',
-            system: '系统提示词'
-          }
-        ]
-      };
+      // 根据选择的字段类型生成不同的示例
+      if (alpacaFieldType === 'instruction') {
+        return {
+          headers: ['instruction', 'input', 'output', 'system'],
+          rows: [
+            {
+              instruction: '人类指令（必填）',
+              input: '',
+              output: '模型回答（必填）',
+              system: '系统提示词（选填）'
+            },
+            {
+              instruction: '第二个指令',
+              input: '',
+              output: '第二个回答',
+              system: '系统提示词'
+            }
+          ]
+        };
+      } else {
+        // input
+        return {
+          headers: ['instruction', 'input', 'output', 'system'],
+          rows: [
+            {
+              instruction: customInstruction || '固定的指令内容',
+              input: '人类问题（必填）',
+              output: '模型回答（必填）',
+              system: '系统提示词（选填）'
+            },
+            {
+              instruction: customInstruction || '固定的指令内容',
+              input: '第二个问题',
+              output: '第二个回答',
+              system: '系统提示词'
+            }
+          ]
+        };
+      }
     } else if (formatType === 'sharegpt') {
       return {
         headers: ['messages'],
@@ -170,6 +196,49 @@ const LocalExportTab = ({
           </RadioGroup>
         </FormControl>
       </Box>
+
+      {/* Alpaca 格式特有的设置 */}
+      {formatType === 'alpaca' && (
+        <Box sx={{ mb: 3, pl: 2, borderLeft: `1px solid ${theme.palette.divider}` }}>
+          <Typography variant="subtitle2" gutterBottom>
+            {t('export.alpacaSettings') || 'Alpaca 格式设置'}
+          </Typography>
+          <FormControl component="fieldset">
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              {t('export.questionFieldType') || '问题字段类型'}
+            </Typography>
+            <RadioGroup
+              aria-label="alpacaFieldType"
+              name="alpacaFieldType"
+              value={alpacaFieldType}
+              onChange={handleAlpacaFieldTypeChange}
+              row
+            >
+              <FormControlLabel
+                value="instruction"
+                control={<Radio />}
+                label={t('export.useInstruction') || '使用 instruction 字段'}
+              />
+              <FormControlLabel value="input" control={<Radio />} label={t('export.useInput') || '使用 input 字段'} />
+            </RadioGroup>
+
+            {alpacaFieldType === 'input' && (
+              <TextField
+                fullWidth
+                size="small"
+                label={t('export.customInstruction') || '自定义 instruction 字段内容'}
+                value={customInstruction}
+                onChange={handleCustomInstructionChange}
+                margin="normal"
+                placeholder={t('export.instructionPlaceholder') || '请输入固定的指令内容'}
+                helperText={
+                  t('export.instructionHelperText') || '当使用 input 字段时，可以在这里指定固定的 instruction 内容'
+                }
+              />
+            )}
+          </FormControl>
+        </Box>
+      )}
 
       {/* 自定义格式选项 */}
       {formatType === 'custom' && (

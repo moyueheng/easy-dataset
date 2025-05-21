@@ -713,12 +713,32 @@ export default function DatasetsPage({ params }) {
       let mimeType = 'application/json';
 
       if (exportOptions.formatType === 'alpaca') {
-        formattedData = dataToExport.map(({ question, answer, cot }) => ({
-          instruction: question,
-          input: '',
-          output: cot && exportOptions.includeCOT ? `<think>${cot}</think>\n${answer}` : answer,
-          system: exportOptions.systemPrompt || ''
-        }));
+        // 根据选择的字段类型生成不同的数据格式
+        if (exportOptions.alpacaFieldType === 'instruction') {
+          // 使用 instruction 字段
+          formattedData = dataToExport.map(({ question, answer, cot }) => ({
+            instruction: question,
+            input: '',
+            output:
+              cot && exportOptions.includeCOT
+                ? `<think>${cot}</think>
+${answer}`
+                : answer,
+            system: exportOptions.systemPrompt || ''
+          }));
+        } else {
+          // 使用 input 字段
+          formattedData = dataToExport.map(({ question, answer, cot }) => ({
+            instruction: exportOptions.customInstruction || '',
+            input: question,
+            output:
+              cot && exportOptions.includeCOT
+                ? `<think>${cot}</think>
+${answer}`
+                : answer,
+            system: exportOptions.systemPrompt || ''
+          }));
+        }
       } else if (exportOptions.formatType === 'sharegpt') {
         formattedData = dataToExport.map(({ question, answer, cot }) => {
           const messages = [];
