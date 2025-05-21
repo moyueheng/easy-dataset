@@ -285,10 +285,10 @@ const LocalExportTab = ({
             }
             label={t('export.includeLabels')}
           />
-          <FormControlLabel
+          {/* <FormControlLabel
             control={<Checkbox checked={customFields.includeChunk} onChange={handleIncludeChunkChange} size="small" />}
             label={t('export.includeChunk')}
-          />
+          /> */}
         </Box>
       )}
 
