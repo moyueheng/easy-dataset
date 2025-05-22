@@ -23,8 +23,8 @@ RUN apk add --no-cache --virtual .build-deps \
     pixman-dev \
     pkgconfig
 
-# 复制依赖文件并安装
-COPY package.json pnpm-lock.yaml ./
+# 复制依赖文件和npm配置并安装(.npmrc中可配置国内源加速)
+COPY package.json pnpm-lock.yaml .npmrc ./
 RUN pnpm install
 
 # 复制源代码并构建
