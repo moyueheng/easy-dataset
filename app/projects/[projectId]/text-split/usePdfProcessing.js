@@ -2,7 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { selectedModelInfoAtom } from '@/lib/store';
+import { useAtomValue } from 'jotai/index';
 import i18n from '@/lib/i18n';
+import axios from 'axios';
 
 /**
  * PDF处理的自定义Hook
@@ -18,6 +21,7 @@ export default function usePdfProcessing(projectId) {
     percentage: 0,
     questionCount: 0
   });
+  const model = useAtomValue(selectedModelInfoAtom);
 
   /**
    * 重置进度状态
@@ -55,15 +59,31 @@ export default function usePdfProcessing(projectId) {
         });
 
         const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
+
+        //获取到视觉策略要使用的模型
+        const availableModels = JSON.parse(localStorage.getItem('modelConfigList'));
+        const vsionModel = availableModels.find(m => m.id === selectedViosnModel);
+
+        // 为每个PDF文件创建后台任务
         for (const file of pdfFiles) {
-          const response = await fetch(
-            `/api/projects/${projectId}/pdf?fileName=${encodeURIComponent(file.name)}&strategy=${pdfStrategy}&currentLanguage=${currentLanguage}&modelId=${selectedViosnModel}`
-          );
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(t('textSplit.pdfProcessingFailed') + errorData.error);
+          debugger;
+          const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
+            taskType: 'pdf-processing',
+            modelInfo: vsionModel,
+            language: i18n.language,
+            detail: 'PDF处理任务',
+            note: {
+              textModel: localStorage.getItem('selectedModelInfo'),
+              projectId,
+              file: file,
+              strategy: pdfStrategy,
+              language: currentLanguage,
+            }
+          });
+
+          if (response.data?.code !== 0) {
+            throw new Error(t('textSplit.pdfProcessingFailed') + (response.data?.error || ''));
           }
-          const data = await response.json();
 
           // 更新进度状态
           setProgress(prev => {
