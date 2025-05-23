@@ -47,16 +47,7 @@ export default function usePdfProcessing(projectId) {
   const handlePdfProcessing = useCallback(
     async (pdfFiles, pdfStrategy, selectedViosnModel, setError) => {
       try {
-        setPdfProcessing(true);
         setError && setError(null);
-
-        // 重置进度：基于新上传的文件数量
-        setProgress({
-          total: pdfFiles.length,
-          completed: 0,
-          percentage: 0,
-          questionCount: 0
-        });
 
         const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
 
@@ -70,14 +61,14 @@ export default function usePdfProcessing(projectId) {
           const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
             taskType: 'pdf-processing',
             modelInfo: vsionModel,
-            language: i18n.language,
+            language: currentLanguage,
             detail: 'PDF处理任务',
             note: {
-              textModel: localStorage.getItem('selectedModelInfo'),
+              // 为节省视觉模型token，pdf处理完成后还是对文本的处理还是使用用户Navbar选中的模型
+              textModel: localStorage.getItem('selectedModelInfo'),  
               projectId,
               file: file,
-              strategy: pdfStrategy,
-              language: currentLanguage,
+              strategy: pdfStrategy
             }
           });
 
@@ -85,24 +76,10 @@ export default function usePdfProcessing(projectId) {
             throw new Error(t('textSplit.pdfProcessingFailed') + (response.data?.error || ''));
           }
 
-          // 更新进度状态
-          setProgress(prev => {
-            const completed = prev.completed + 1;
-            const percentage = Math.round((completed / prev.total) * 100);
-            return {
-              ...prev,
-              completed,
-              percentage
-            };
-          });
         }
       } catch (error) {
         console.error(t('textSplit.pdfProcessingFailed'), error);
         setError && setError({ severity: 'error', message: error.message });
-      } finally {
-        setPdfProcessing(false);
-        // 重置进度状态
-        resetProgress();
       }
     },
     [projectId, t, resetProgress]
