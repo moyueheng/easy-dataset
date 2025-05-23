@@ -14,7 +14,7 @@ export const MODEL_PROVIDERS = [
   {
     id: 'siliconcloud',
     name: '硅基流动',
-    defaultEndpoint: 'https://api.ap.siliconflow.com/v1/',
+    defaultEndpoint: 'https://api.siliconflow.cn/v1/',
     defaultModels: [
       'deepseek-ai/DeepSeek-R1',
       'deepseek-ai/DeepSeek-V3',

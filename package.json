@@ -1,6 +1,6 @@
 {
   "name": "easy-dataset",
-  "version": "1.3.3",
+  "version": "1.3.5",
   "private": true,
   "author": {
     "name": "ConardLi",
@@ -158,6 +158,11 @@
           ]
         }
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
     }
   }
 }

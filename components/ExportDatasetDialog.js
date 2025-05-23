@@ -16,6 +16,9 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
   const [fileFormat, setFileFormat] = useState('json');
   const [includeCOT, setIncludeCOT] = useState(true);
   const [currentTab, setCurrentTab] = useState(0);
+  // alpaca 格式特有的设置
+  const [alpacaFieldType, setAlpacaFieldType] = useState('instruction'); // 'instruction' 或 'input'
+  const [customInstruction, setCustomInstruction] = useState(''); // 当选择 input 时使用的自定义 instruction
   const [customFields, setCustomFields] = useState({
     questionField: 'instruction',
     answerField: 'output',
@@ -82,6 +85,16 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
     });
   };
 
+  // 处理 Alpaca 字段类型变更
+  const handleAlpacaFieldTypeChange = event => {
+    setAlpacaFieldType(event.target.value);
+  };
+
+  // 处理自定义 instruction 变更
+  const handleCustomInstructionChange = event => {
+    setCustomInstruction(event.target.value);
+  };
+
   const handleExport = () => {
     onExport({
       formatType,
@@ -89,6 +102,8 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
       confirmedOnly,
       fileFormat,
       includeCOT,
+      alpacaFieldType, // 添加 alpaca 字段类型
+      customInstruction, // 添加自定义 instruction
       customFields: formatType === 'custom' ? customFields : undefined
     });
   };
@@ -124,6 +139,8 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
             confirmedOnly={confirmedOnly}
             includeCOT={includeCOT}
             customFields={customFields}
+            alpacaFieldType={alpacaFieldType}
+            customInstruction={customInstruction}
             handleFileFormatChange={handleFileFormatChange}
             handleFormatChange={handleFormatChange}
             handleSystemPromptChange={handleSystemPromptChange}
@@ -132,6 +149,8 @@ const ExportDatasetDialog = ({ open, onClose, onExport, projectId }) => {
             handleCustomFieldChange={handleCustomFieldChange}
             handleIncludeLabelsChange={handleIncludeLabelsChange}
             handleIncludeChunkChange={handleIncludeChunkChange}
+            handleAlpacaFieldTypeChange={handleAlpacaFieldTypeChange}
+            handleCustomInstructionChange={handleCustomInstructionChange}
             handleExport={handleExport}
           />
         )}
