@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { selectedModelInfoAtom } from '@/lib/store';
 import { useAtomValue } from 'jotai/index';
+import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 import axios from 'axios';
 
@@ -77,6 +78,10 @@ export default function usePdfProcessing(projectId) {
           }
 
         }
+
+        //提示后台任务进行中
+        toast.success(t('tasks.createSuccess', { defaultValue: '检测到PDF文件，系统将创建后台任务解析文件' }));
+
       } catch (error) {
         console.error(t('textSplit.pdfProcessingFailed'), error);
         setError && setError({ severity: 'error', message: error.message });

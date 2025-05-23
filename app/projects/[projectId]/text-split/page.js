@@ -98,13 +98,16 @@ export default function TextSplitPage({ params }) {
       const filesWithoutPdf = fileNames.filter(item => !item.fileName.endsWith(".pdf"));
       if (filesWithoutPdf && filesWithoutPdf.length > 0) {
         await handleSplitText(filesWithoutPdf, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+        //只有进行了文本分割流程后再reload整个页面
+        location.reload();
       }
     } catch (error) {
       console.error('文件处理错误:', error);
       setError(error.message || '文件处理过程中发生错误');
     } finally {
       // 完成后设置页面加载状态为 false
-      location.reload();
+      //location.reload();
+      setLoading(false);
     }
   };
 
