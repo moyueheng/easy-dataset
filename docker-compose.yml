@@ -1,6 +1,6 @@
 services:
   easy-dataset:
-    image: ghcr.io/ddddd12138/easy-dataset
+    image: ghcr.io/conardli/easy-dataset
     container_name: easy-dataset
     ports:
       - '1717:1717'
