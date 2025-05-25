@@ -19,6 +19,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import MarkdownViewDialog from '../MarkdownViewDialog';
+import GaPairsIndicator from '../../mga/GaPairsIndicator';
 
 export default function FileList({
   theme,
@@ -156,12 +157,12 @@ export default function FileList({
                       sx={{ mr: 1 }} // 添加一些右边距，使复选框和按钮之间有间隔
                       checked={file.checked} // 假设 `file.checked` 是复选框的状态
                       onChange={e => handleCheckboxChange(file.id, e.target.checked)}
-                    />
-                    <Tooltip title={t('textSplit.viewDetails')}>
+                    />                    <Tooltip title={t('textSplit.viewDetails')}>
                       <IconButton color="primary" onClick={() => handleViewContent(file.id)}>
                         <VisibilityIcon />
                       </IconButton>
                     </Tooltip>
+                    <GaPairsIndicator projectId={projectId} fileId={file.id} />
                     <Tooltip title={t('textSplit.download')}>
                       <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
                         <Download />

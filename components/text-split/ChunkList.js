@@ -40,9 +40,16 @@ export default function ChunkList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chunkToDelete, setChunkToDelete] = useState(null);
 
-  // 对文本块进行排序，先按文件ID排序，再按part-后面的数字排序
+  // 对文本块进行排序，Distilled Content优先，然后按文件ID和part数字排序
   const sortedChunks = [...chunks].sort((a, b) => {
-    // 先按fileId排序
+    // Distilled Content 优先显示
+    const aIsDistilled = a.name === 'Distilled Content';
+    const bIsDistilled = b.name === 'Distilled Content';
+    
+    if (aIsDistilled && !bIsDistilled) return -1;
+    if (!aIsDistilled && bIsDistilled) return 1;
+    
+    // 如果都是或都不是Distilled Content，按原有逻辑排序
     if (a.fileId !== b.fileId) {
       return a.fileId.localeCompare(b.fileId);
     }
