@@ -6,18 +6,29 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider,
   IconButton,
   Tooltip,
+  Divider,
   CircularProgress,
-  Checkbox
+  Checkbox,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Download from '@mui/icons-material/Download';
-import FileIcon from '@mui/icons-material/InsertDriveFile';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import {
+  Visibility as VisibilityIcon,
+  Download,
+  Delete as DeleteIcon,
+  FilePresent as FileIcon,
+  Psychology as PsychologyIcon
+} from '@mui/icons-material';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { selectedModelInfoAtom } from '@/lib/store';
 import MarkdownViewDialog from '../MarkdownViewDialog';
 import GaPairsIndicator from '../../mga/GaPairsIndicator';
 
@@ -31,19 +42,41 @@ export default function FileList({
   setPageLoading
 }) {
   const { t } = useTranslation();
+  
+  // 现有的状态
   const [array, setArray] = useState([]);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [viewContent, setViewContent] = useState(null);
+  const [viewContent, setViewContent] = useState('');
+
+  // 新增的批量生成GA对相关状态
+  const [batchGenDialogOpen, setBatchGenDialogOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState(null);
+  const [genResult, setGenResult] = useState(null);
+  const [projectModel, setProjectModel] = useState(null);
+  const [loadingModel, setLoadingModel] = useState(false);
+
+  // 获取当前选中的模型信息
+  const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
+
   const handleCheckboxChange = (fileId, isChecked) => {
-    if (isChecked) {
-      array.push(fileId);
-      setArray(array);
-      sendToFileUploader(array);
-    } else {
-      const newArray = array.filter(item => item !== fileId);
-      setArray(newArray);
-      sendToFileUploader(newArray);
-    }
+    setArray(prevArray => {
+      let newArray;
+      const stringFileId = String(fileId);
+      
+      if (isChecked) {
+        newArray = prevArray.includes(stringFileId) 
+          ? prevArray 
+          : [...prevArray, stringFileId];
+      } else {
+        newArray = prevArray.filter(item => item !== stringFileId);
+      }
+      
+      if (typeof sendToFileUploader === 'function') {
+        sendToFileUploader(newArray);
+      }
+      return newArray;
+    });
   };
 
   const handleCloseViewDialog = () => {
@@ -119,6 +152,162 @@ export default function FileList({
     }
   };
 
+  // 新增：获取项目特定的默认模型信息
+  const fetchProjectModel = async () => {
+    try {
+      setLoadingModel(true);
+      
+      // 首先获取项目信息
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (!response.ok) {
+        throw new Error(`获取项目信息失败: ${response.status}`);
+      }
+      
+      const projectData = await response.json();
+
+      // 获取模型配置
+      const modelResponse = await fetch(`/api/projects/${projectId}/model-config`);
+      if (!modelResponse.ok) {
+        throw new Error(`获取模型配置失败: ${modelResponse.status}`);
+      }
+      
+      const modelConfigData = await modelResponse.json();
+      
+      if (modelConfigData.data && Array.isArray(modelConfigData.data)) {
+        // 优先使用项目默认模型
+        let targetModel = null;
+        
+        if (projectData.defaultModelConfigId) {
+          targetModel = modelConfigData.data.find(
+            model => model.id === projectData.defaultModelConfigId
+          );
+        }
+        
+        // 如果没有默认模型，使用第一个可用的模型
+        if (!targetModel) {
+          targetModel = modelConfigData.data.find(m => 
+            m.modelName && m.endpoint && (m.providerId === 'ollama' || m.apiKey)
+          );
+        }
+        
+        if (targetModel) {
+          setProjectModel(targetModel);
+        }
+      }
+    } catch (error) {
+      console.error("获取项目模型配置时出错:", error);
+    } finally {
+      setLoadingModel(false);
+    }
+  };
+
+  // 新增：批量生成GA对的处理函数
+  const handleBatchGenerateGAPairs = async () => {
+    if (array.length === 0) {
+      setGenError('请先选择至少一个文件');
+      return;
+    }
+
+    const modelToUse = projectModel || selectedModelInfo;
+    
+    if (!modelToUse || !modelToUse.id) {
+      setGenError('未设置默认模型，请先在项目设置中配置模型');
+      return;
+    }
+
+    // 检查模型配置是否完整
+    if (!modelToUse.modelName || !modelToUse.endpoint) {
+      setGenError('模型配置不完整，请检查模型设置');
+      return;
+    }
+
+    // 检查API密钥（除了ollama模型）
+    if (modelToUse.providerId !== 'ollama' && !modelToUse.apiKey) {
+      setGenError('模型未配置API密钥，请在模型设置中添加API密钥');
+      return;
+    }
+
+    try {
+      setGenerating(true);
+      setGenError(null);
+      setGenResult(null);
+
+      const stringFileIds = array.map(id => String(id));
+      
+      const requestData = {
+        fileIds: stringFileIds,
+        modelConfigId: modelToUse.id,
+        language: '中文'
+      };
+
+      const response = await fetch(`/api/projects/${projectId}/ga-pairs/batch-generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData)
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: '解析错误响应失败' }));
+        throw new Error(errorData.error || `请求失败 (${response.status}): ${response.statusText}`);
+      }
+
+      const result = JSON.parse(responseText);
+      
+      if (result.success) {
+        setGenResult({
+          total: result.data?.length || 0,
+          success: result.data?.filter(r => r.success).length || 0
+        });
+        
+        // 成功后清空选择状态
+        setArray([]);
+        if (typeof sendToFileUploader === 'function') {
+          sendToFileUploader([]);
+        }
+        
+        console.log(`成功为 ${result.summary?.success || 0} 个文件生成GA对`);
+        
+        // 新增：批量生成成功后，刷新当前页面
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000); // 2秒后刷新，让用户看到成功消息
+        
+      } else {
+        setGenError(result.error || '生成失败');
+      }
+    } catch (error) {
+      console.error('批量生成GA对失败:', error);
+      setGenError(`生成过程发生错误: ${error.message || '未知错误'}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // 新增：打开批量生成对话框
+  const openBatchGenDialog = () => {
+    // 如果没有选中文件，自动选中所有文件
+    if (array.length === 0 && files?.data?.length > 0) {
+      const allFileIds = files.data.map(file => String(file.id));
+      setArray(allFileIds);
+      if (typeof sendToFileUploader === 'function') {
+        sendToFileUploader(allFileIds);
+      }
+    }
+    
+    // 获取项目模型配置
+    fetchProjectModel();
+    setBatchGenDialogOpen(true);
+  };
+
+  // 新增：关闭批量生成对话框
+  const closeBatchGenDialog = () => {
+    setBatchGenDialogOpen(false);
+    setGenError(null);
+    setGenResult(null);
+  };
+
   return (
     <Box
       sx={{
@@ -132,9 +321,26 @@ export default function FileList({
         overflow: 'hidden'
       }}
     >
-      <Typography variant="subtitle1" gutterBottom>
-        {t('textSplit.uploadedDocuments', { count: files.total })}
-      </Typography>
+      {/* 修改标题部分，添加批量生成按钮 */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="subtitle1">
+          {t('textSplit.uploadedDocuments', { count: files.total })}
+        </Typography>
+        
+        {/* 批量生成GA对按钮 */}
+        {files.total > 0 && (
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={<PsychologyIcon />}
+            onClick={openBatchGenDialog}
+            disabled={loading}
+          >
+            批量生成GA对
+          </Button>
+        )}
+      </Box>
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -154,10 +360,11 @@ export default function FileList({
                 secondaryAction={
                   <Box sx={{ display: 'flex' }}>
                     <Checkbox
-                      sx={{ mr: 1 }} // 添加一些右边距，使复选框和按钮之间有间隔
-                      checked={file.checked} // 假设 `file.checked` 是复选框的状态
+                      sx={{ mr: 1 }}
+                      checked={array.includes(String(file.id))}
                       onChange={e => handleCheckboxChange(file.id, e.target.checked)}
-                    />                    <Tooltip title={t('textSplit.viewDetails')}>
+                    />
+                    <Tooltip title={t('textSplit.viewDetails')}>
                       <IconButton color="primary" onClick={() => handleViewContent(file.id)}>
                         <VisibilityIcon />
                       </IconButton>
@@ -184,12 +391,13 @@ export default function FileList({
                   />
                 </Box>
               </ListItem>
-              {index < files.length - 1 && <Divider />}
+              {index < files.data.length - 1 && <Divider />}
             </Box>
           ))}
         </List>
       )}
-      {/* 文本块详情对话框 */}
+
+      {/* 现有的文本块详情对话框 */}
       <MarkdownViewDialog
         open={viewDialogOpen}
         text={viewContent}
@@ -197,6 +405,67 @@ export default function FileList({
         projectId={projectId}
         onSaveSuccess={refreshTextChunks}
       />
+
+      {/* 新增：批量生成GA对对话框 */}
+      <Dialog open={batchGenDialogOpen} onClose={closeBatchGenDialog} maxWidth="md" fullWidth>
+        <DialogTitle>批量生成GA对</DialogTitle>
+        <DialogContent>
+          {!genResult && (
+            <DialogContentText>
+              将为选中的 {array.length} 个文件批量生成GA对，该操作可能需要一些时间。
+              {loadingModel ? (
+                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
+                  <CircularProgress size={16} sx={{ mr: 1 }} />
+                  <Typography variant="body2">加载项目模型中...</Typography>
+                </Box>
+              ) : projectModel ? (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="textSecondary">
+                    使用模型: <strong>{projectModel.providerName}: {projectModel.modelName}</strong>
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="error">
+                    未设置默认模型，请先在项目设置中配置模型
+                  </Typography>
+                </Box>
+              )}
+            </DialogContentText>
+          )}
+
+          {genError && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+              <Typography variant="body2" color="error.contrastText">
+                {genError}
+              </Typography>
+            </Box>
+          )}
+
+          {genResult && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
+              <Typography variant="body2" color="success.contrastText">
+                批量生成完成！成功为 {genResult.success}/{genResult.total} 个文件生成了GA对。
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeBatchGenDialog}>
+            {genResult ? '关闭' : '取消'}
+          </Button>
+          {!genResult && (
+            <Button
+              onClick={handleBatchGenerateGAPairs}
+              variant="contained"
+              disabled={generating || array.length === 0 || !projectModel}
+              startIcon={generating ? <CircularProgress size={20} /> : <PsychologyIcon />}
+            >
+              {generating ? '正在生成...' : '开始生成'}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
