@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef} from 'react';
 import {
   Box,
   Chip,
@@ -29,44 +29,87 @@ import GaPairsManager from './GaPairsManager';
  * @param {string} props.fileId - File ID
  * @param {string} props.fileName - File name for display
  */
-export default function GaPairsIndicator({ projectId, fileId, fileName }) {
+export default function GaPairsIndicator({ projectId, fileId, fileName='未命名文件' }) {
   const { t } = useTranslation();
   const [gaPairs, setGaPairs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  // Load GA pairs status
-  useEffect(() => {
-    loadGaPairsStatus();
-  }, [projectId, fileId]);
-  const loadGaPairsStatus = async () => {
+  // 获取GA对状态的函数
+  const fetchGaPairsStatus = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const response = await fetch(`/api/projects/${projectId}/files/${fileId}/ga-pairs`);
+
       if (!response.ok) {
-        throw new Error('Failed to load GA pairs status');
+        if (response.status === 404) {
+          setGaPairs([]);
+          return;
+        }
+        throw new Error(`HTTP ${response.status}: Failed to load GA pairs`);
       }
 
       const result = await response.json();
-      if (result.success) {
-        setGaPairs(result.data || []);
+
+      // 处理响应格式
+      let newGaPairs = [];
+      if (Array.isArray(result)) {
+        newGaPairs = result;
+      } else if (result?.data) {
+        newGaPairs = result.data;
       }
+
+      setGaPairs(newGaPairs);
+
     } catch (error) {
-      console.error('Failed to load GA pairs status:', error);
+      console.error('获取GA对状态失败:', error);
+      setGaPairs([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, fileId]);
 
-  // 修复：正确计算激活的GA对数量
+  // 初始加载
+  useEffect(() => {
+    if (projectId && fileId) {
+      fetchGaPairsStatus();
+    }
+  }, [projectId, fileId, fetchGaPairsStatus]);
+
+  //监听外部事件
+  useEffect(() => {
+    const handleRefresh = (event) => {
+      const { projectId: eventProjectId, fileIds } = event.detail || {};
+
+      if (eventProjectId === projectId && fileIds?.includes(String(fileId))) {
+        fetchGaPairsStatus();
+      }
+    };
+
+    window.addEventListener('refreshGaPairsIndicators', handleRefresh);
+    return () => window.removeEventListener('refreshGaPairsIndicators', handleRefresh);
+  }, [projectId, fileId, fetchGaPairsStatus]);
+
+  // 计算激活的GA对数量
   const activePairs = gaPairs.filter(pair => pair.isActive);
   const hasGaPairs = gaPairs.length > 0;
 
-  const handleGaPairsChange = (newGaPairs) => {
+  //GA对变化回调处理
+  const handleGaPairsChange = useCallback((newGaPairs) => {
     setGaPairs(newGaPairs || []);
-  };
+    // 删除全局事件发送，直接更新本地状态
+  }, []);
 
+  const handleOpenDialog = useCallback(() => {
+    setDetailsOpen(true);
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setDetailsOpen(false);
+  }, []);
+
+  //加载状态显示
   if (loading) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -90,47 +133,35 @@ export default function GaPairsIndicator({ projectId, fileId, fileName }) {
             variant={activePairs.length > 0 ? 'filled' : 'outlined'}
           />
           <Tooltip title="View Details">
-            <IconButton
-              size="small"
-              onClick={() => setDetailsOpen(true)}
-            >
+            <IconButton size="small" onClick={handleOpenDialog}>
               <VisibilityIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </>
       ) : (
         <Tooltip title="Generate GA Pairs">
-          <IconButton
-            size="small"
-            onClick={() => setDetailsOpen(true)}
-            color="primary"
-          >
+          <IconButton size="small" onClick={handleOpenDialog} color="primary">
             <AddIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       )}
 
       {/* Details Dialog */}
-      <Dialog 
-        open={detailsOpen} 
-        onClose={() => setDetailsOpen(false)}
-        maxWidth="lg"
-        fullWidth
-      >
+      <Dialog open={detailsOpen} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
         <DialogTitle>
           GA Pairs for {fileName}
         </DialogTitle>
         <DialogContent>
-          <GaPairsManager
-            projectId={projectId}
-            fileId={fileId}
-            onGaPairsChange={handleGaPairsChange}
-          />
+          {detailsOpen && (
+              <GaPairsManager
+                  projectId={projectId}
+                  fileId={fileId}
+                  onGaPairsChange={handleGaPairsChange}
+              />
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailsOpen(false)}>
-            Close
-          </Button>
+          <Button onClick={handleCloseDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
