@@ -113,7 +113,6 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       });
 
       if (!response.ok) {
-        // 现有的错误处理逻辑保持不变...
         let errorMessage = 'Failed to generate GA pairs';
         
         if (response.status === 404) {

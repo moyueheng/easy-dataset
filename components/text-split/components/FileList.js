@@ -272,12 +272,20 @@ export default function FileList({
         }
         
         console.log(`成功为 ${result.summary?.success || 0} 个文件生成GA对`);
-        
-        // 新增：批量生成成功后，刷新当前页面
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000); // 2秒后刷新，让用户看到成功消息
-        
+
+        //发送全局刷新事件
+        const successfulFileIds = result.data
+            ?.filter(item => item.success)
+            ?.map(item => String(item.fileId)) || [];
+
+        if (successfulFileIds.length > 0) {
+          window.dispatchEvent(new CustomEvent('refreshGaPairsIndicators', {
+            detail: {
+              projectId,
+              fileIds: successfulFileIds
+            }
+          }));
+        }
       } else {
         setGenError(result.error || '生成失败');
       }
@@ -373,7 +381,7 @@ export default function FileList({
                         <VisibilityIcon />
                       </IconButton>
                     </Tooltip>
-                    <GaPairsIndicator projectId={projectId} fileId={file.id} />
+                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName}/>
                     <Tooltip title={t('textSplit.download')}>
                       <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
                         <Download />

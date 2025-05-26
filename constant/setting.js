@@ -6,7 +6,5 @@ export const DEFAULT_SETTINGS = {
   questionMaskRemovingProbability: 60,
   huggingfaceToken: '',
   concurrencyLimit: 5,
-  visionConcurrencyLimit: 5,
-  // MGA GA pair选择策略: 'hash-based', 'round-robin', 'random'
-  gaPairSelectionStrategy: 'hash-based'
+  visionConcurrencyLimit: 5
 };
