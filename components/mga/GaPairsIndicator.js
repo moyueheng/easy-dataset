@@ -118,7 +118,7 @@ export default function GaPairsIndicator({ projectId, fileId, fileName }) {
         fullWidth
       >
         <DialogTitle>
-          GA Pairs {fileName}
+          GA Pairs for {fileName}
         </DialogTitle>
         <DialogContent>
           <GaPairsManager

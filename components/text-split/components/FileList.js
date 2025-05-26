@@ -31,6 +31,7 @@ import { useAtomValue } from 'jotai';
 import { selectedModelInfoAtom } from '@/lib/store';
 import MarkdownViewDialog from '../MarkdownViewDialog';
 import GaPairsIndicator from '../../mga/GaPairsIndicator';
+import i18n from '@/lib/i18n';
 
 export default function FileList({
   theme,
@@ -234,10 +235,13 @@ export default function FileList({
 
       const stringFileIds = array.map(id => String(id));
       
+      // 获取当前语言环境
+      const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
+
       const requestData = {
         fileIds: stringFileIds,
         modelConfigId: modelToUse.id,
-        language: '中文'
+        language: currentLanguage
       };
 
       const response = await fetch(`/api/projects/${projectId}/ga-pairs/batch-generate`, {

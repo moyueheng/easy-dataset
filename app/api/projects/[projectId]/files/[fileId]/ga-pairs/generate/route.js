@@ -29,7 +29,8 @@ export async function POST(request, { params }) {
       fileId,
       modelConfigId,
       language
-    );    return NextResponse.json({
+    );
+    return NextResponse.json({
       success: true,
       data: result,
       message: result.skipped ? 'GA pairs already exist' : 'GA pairs generated successfully'
