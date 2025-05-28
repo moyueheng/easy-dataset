@@ -98,7 +98,6 @@ export default function GaPairsIndicator({ projectId, fileId, fileName='未命�
   //GA对变化回调处理
   const handleGaPairsChange = useCallback((newGaPairs) => {
     setGaPairs(newGaPairs || []);
-    // 删除全局事件发送，直接更新本地状态
   }, []);
 
   const handleOpenDialog = useCallback(() => {

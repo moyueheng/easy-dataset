@@ -11,7 +11,7 @@ import { db } from '@/lib/db/index';
 export async function POST(request, { params }) {
   try {
     const { projectId, fileId } = params;
-    const { regenerate = false, appendMode = false } = await request.json();
+    const { regenerate = false, appendMode = false, language = '中文' } = await request.json();
 
     // 验证参数
     if (!projectId || !fileId) {
@@ -82,7 +82,7 @@ export async function POST(request, { params }) {
     let generatedGaPairs;
     
     try {
-      generatedGaPairs = await generateGaPairs(fileContent, projectId);
+      generatedGaPairs = await generateGaPairs(fileContent, projectId, language);
       
       if (!generatedGaPairs || generatedGaPairs.length === 0) {
         logger.warn('No GA pairs generated from LLM');

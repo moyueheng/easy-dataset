@@ -68,7 +68,6 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       // 检查响应状态
       if (!response.ok) {
         if (response.status === 404) {
-          // API路由不存在，可能是开发环境问题
           console.warn('GA Pairs API not found, using empty data');
           setGaPairs([]);
           setBackupGaPairs([]);
@@ -90,7 +89,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       }
     } catch (error) {
       console.error('Load GA pairs error:', error);
-      setError(`Unable to load GA pairs: ${error.message}`);
+      setError(t('gaPairs.loadError', { error: error.message }));
     } finally {
       setLoading(false);
     }
@@ -102,18 +101,22 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       setError(null);
       
       console.log('Starting GA pairs generation...');
-      
+
+      // Get current language from i18n
+      const currentLanguage = t('language') === 'English' ? 'English' : '中文';
+
       const response = await fetch(`/api/projects/${projectId}/files/${fileId}/ga-pairs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           regenerate: false,
-          appendMode: true  // 新增：启用追加模式
+          appendMode: true,// 新增：启用追加模式
+          language: currentLanguage
         })
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to generate GA pairs';
+        let errorMessage = t('gaPairs.generateError');
         
         if (response.status === 404) {
           errorMessage = 'GA Pairs generation service is not available. Please check your API configuration.';
@@ -121,9 +124,9 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
           try {
             const errorResult = await response.json();
             if (errorResult.error?.includes('No active AI model')) {
-              errorMessage = 'Please configure an AI model in settings before generating GA pairs.';
+              errorMessage = t('gaPairs.noActiveModel');
             } else if (errorResult.error?.includes('content might be too short')) {
-              errorMessage = 'The file content is too short or not suitable for GA pair generation.';
+              errorMessage = t('gaPairs.contentTooShort');
             } else {
               errorMessage = errorResult.error || errorMessage;
             }
@@ -134,13 +137,13 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
           try {
             const errorResult = await response.json();
             if (errorResult.error?.includes('model configuration') || errorResult.error?.includes('Module not found')) {
-              errorMessage = 'AI model configuration error. The required dependencies may not be installed.';
+              errorMessage = t('gaPairs.configError');
             } else {
               errorMessage = errorResult.error || 'Internal server error occurred.';
             }
           } catch (parseError) {
             console.error('Failed to parse error response:', parseError);
-            errorMessage = `Server error (${response.status}). Please try again later.`;
+            errorMessage = t('gaPairs.serverError', { status: response.status });
           }
         }
         
@@ -150,7 +153,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       // 处理成功响应
       const responseText = await response.text();
       if (!responseText || responseText.trim() === '') {
-        throw new Error('Empty response from generation service');
+        throw new Error(t('gaPairs.emptyResponse'));
       }
 
       const result = JSON.parse(responseText);
@@ -166,9 +169,12 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
         setGaPairs(updatedGaPairs);
         setBackupGaPairs([...updatedGaPairs]); // 更新备份
         onGaPairsChange?.(updatedGaPairs);
-        setSuccess(`Successfully generated ${newGaPairs.length} additional Genre-Audience pairs. Total: ${updatedGaPairs.length}`);
+        setSuccess(t('gaPairs.additionalPairsGenerated', {
+          count: newGaPairs.length,
+          total: updatedGaPairs.length
+        }));
       } else {
-        throw new Error(result.error || 'Generation failed');
+        throw new Error(result.error || t('gaPairs.generationFailed'));
       }
     } catch (error) {
       console.error('Generate GA pairs error:', error);
@@ -206,7 +212,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
         
         // 验证必填字段
         if (!genreTitle || !audienceTitle) {
-          throw new Error(`GA pair ${index + 1}: Genre and Audience titles are required`);
+          throw new Error(t('gaPairs.validationError', { number: index + 1 }));
         }
         
         return {
@@ -230,7 +236,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       });
 
       if (!response.ok) {
-        let errorMessage = 'Failed to save GA pairs';
+        let errorMessage = t('gaPairs.saveError');
         
         if (response.status === 404) {
           errorMessage = 'GA Pairs save service is not available.';
@@ -239,10 +245,10 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
             const errorResult = await response.json();
             errorMessage = errorResult.error || errorMessage;
           } catch (parseError) {
-            errorMessage = `Server error (${response.status})`;
+            errorMessage = t('gaPairs.serverError', { status: response.status });
           }
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -251,11 +257,19 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       
       if (result.success) {
         // 更新本地状态为服务器返回的数据
-        setGaPairs(result.data || validatedGaPairs);
-        setSuccess('Genre-Audience pairs saved successfully');
-        onGaPairsChange?.(result.data || validatedGaPairs);
+        const savedData = result.data || validatedGaPairs;
+        setGaPairs(savedData);
+
+        // 根据保存的GA对数量显示不同的成功消息
+        if (savedData.length === 0) {
+          setSuccess(t('gaPairs.allPairsDeleted'));
+        } else {
+          setSuccess(t('gaPairs.pairsSaved', { count: savedData.length }));
+        }
+
+        onGaPairsChange?.(savedData);
       } else {
-        throw new Error(result.error || 'Save operation failed');
+        throw new Error(result.error || t('gaPairs.saveOperationFailed'));
       }
     } catch (error) {
       console.error('Save GA pairs error:', error);
@@ -292,7 +306,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
   const handleAddGaPair = () => {
     // 验证输入
     if (!newGaPair.genreTitle?.trim() || !newGaPair.audienceTitle?.trim()) {
-      setError('Genre Title and Audience Title are required');
+      setError(t('gaPairs.requiredFields'));
       return;
     }
 
@@ -330,7 +344,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
   const recoverFromBackup = () => {
     setGaPairs([...backupGaPairs]);
     setError(null);
-    setSuccess('Restored from backup');
+    setSuccess(t('gaPairs.restoredFromBackup'));
   };
 
   useEffect(() => {
@@ -344,7 +358,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
         <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading GA pairs...</Typography>
+        <Typography sx={{ ml: 2 }}>{t('gaPairs.loading')}</Typography>
       </Box>
     );
   }
@@ -353,24 +367,24 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
     <Box sx={{ p: 2 }}>
       {/* Header with action buttons */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6">Genre-Audience Pairs Management</Typography>
+        <Typography variant="h6">{t('gaPairs.title')}</Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          {/* 修改：右上角按钮改为手动添加GA对 */}
+          {/* 右上角按钮为手动添加GA对 */}
           <Button
             variant="outlined"
             startIcon={<AddIcon />}
             onClick={() => setAddDialogOpen(true)}
             disabled={generating || saving}
           >
-            Add GA Pair
+            {t('gaPairs.addPair')}
           </Button>
           <Button
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={saveGaPairs}
-            disabled={generating || saving || gaPairs.length === 0}
+            disabled={generating || saving }
           >
-            {saving ? <CircularProgress size={20} /> : 'Save Changes'}
+            {saving ? <CircularProgress size={20} /> : t('gaPairs.saveChanges')}
           </Button>
         </Box>
       </Box>
@@ -383,7 +397,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
           action={
             backupGaPairs.length > 0 && (
               <Button color="inherit" size="small" onClick={recoverFromBackup}>
-                Restore Backup
+                {t('gaPairs.restoreBackup')}
               </Button>
             )
           }
@@ -403,10 +417,10 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ textAlign: 'center' }}>
             <Typography variant="h6" gutterBottom>
-              No Genre-Audience Pairs Found
+              {t('gaPairs.noGaPairsTitle')}
             </Typography>
             <Typography color="textSecondary" sx={{ mb: 2 }}>
-              Generate AI-powered Genre-Audience pairs for this file
+              {t('gaPairs.noGaPairsDescription')}
             </Typography>
             <Button
               variant="contained"
@@ -415,7 +429,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
               disabled={generating}
               size="large"
             >
-              {generating ? 'Generating...' : 'Generate Genre-Audience Pairs'}
+              {generating ? t('gaPairs.generating') : t('gaPairs.generateGaPairs')}
             </Button>
           </CardContent>
         </Card>
@@ -425,7 +439,10 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       {gaPairs.length > 0 && (
         <Box>
           <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            Active Genre-Audience Pairs ({gaPairs.filter(pair => pair.isActive).length}/{gaPairs.length})
+            {t('gaPairs.activePairs', {
+              active: gaPairs.filter(pair => pair.isActive).length,
+              total: gaPairs.length
+            })}
           </Typography>
           
           <Grid container spacing={2}>
@@ -434,8 +451,8 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                 <Card variant="outlined">
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Typography variant="subtitle2" color="primary">
-                        Genre-Audience Pair #{index + 1}
+                    <Typography variant="subtitle2" color="primary">
+                       {t('gaPairs.pairNumber', { number: index + 1 })}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <FormControlLabel
@@ -446,10 +463,10 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                               size="small"
                             />
                           }
-                          label="Active"
+                          label={t('gaPairs.active')}
                         />
                         {/* 添加删除按钮 */}
-                        <Tooltip title="Delete GA Pair">
+                        <Tooltip title={t('gaPairs.deleteTooltip')}>
                           <IconButton
                             size="small"
                             color="error"
@@ -460,10 +477,10 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                         </Tooltip>
                       </Box>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <TextField
-                        label="Genre"
+                          label={t('gaPairs.genre')}
                         value={pair.genreTitle || pair.genre || ''}
                         onChange={(e) => handleGaPairChange(index, 'genreTitle', e.target.value)}
                         multiline
@@ -472,7 +489,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                         disabled={!pair.isActive}
                       />
                       <TextField
-                        label="Genre Description"
+                          label={t('gaPairs.genreDescription')}
                         value={pair.genreDesc || ''}
                         onChange={(e) => handleGaPairChange(index, 'genreDesc', e.target.value)}
                         multiline
@@ -481,7 +498,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                         disabled={!pair.isActive}
                       />
                       <TextField
-                        label="Audience"
+                          label={t('gaPairs.audience')}
                         value={pair.audienceTitle || pair.audience || ''}
                         onChange={(e) => handleGaPairChange(index, 'audienceTitle', e.target.value)}
                         multiline
@@ -490,7 +507,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                         disabled={!pair.isActive}
                       />
                       <TextField
-                        label="Audience Description"
+                          label={t('gaPairs.audienceDescription')}
                         value={pair.audienceDesc || ''}
                         onChange={(e) => handleGaPairChange(index, 'audienceDesc', e.target.value)}
                         multiline
@@ -505,7 +522,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
             ))}
           </Grid>
           
-          {/* 在GA对列表下方也添加生成按钮 */}
+          {/* 在GA对列表下方添加生成按钮 */}
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Button
               variant="outlined"
@@ -513,7 +530,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
               onClick={generateGaPairs}
               disabled={generating}
             >
-              {generating ? 'Generating...' : 'Generate More Genre-Audience Pairs'}
+              {generating ? t('gaPairs.generating') : t('gaPairs.generateMore')}
             </Button>
           </Box>
         </Box>
@@ -521,42 +538,42 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
 
       {/* Add GA Pair Dialog */}
       <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Add New Genre-Audience Pair</DialogTitle>
+        <DialogTitle>{t('gaPairs.addDialogTitle')}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              label="Genre Title"
+                label={t('gaPairs.genreTitle')}
               value={newGaPair.genreTitle || ''}
               onChange={(e) => setNewGaPair({ ...newGaPair, genreTitle: e.target.value })}
               fullWidth
               required
-              placeholder="Enter the genre title..."
+                placeholder={t('gaPairs.genreTitlePlaceholder')}
             />
             <TextField
-              label="Genre Description"
+                label={t('gaPairs.genreDescription')}
               value={newGaPair.genreDesc || ''}
               onChange={(e) => setNewGaPair({ ...newGaPair, genreDesc: e.target.value })}
               multiline
               rows={3}
               fullWidth
-              placeholder="Describe the genre in detail..."
+                placeholder={t('gaPairs.genreDescPlaceholder')}
             />
             <TextField
-              label="Audience Title"
+                label={t('gaPairs.audienceTitle')}
               value={newGaPair.audienceTitle || ''}
               onChange={(e) => setNewGaPair({ ...newGaPair, audienceTitle: e.target.value })}
               fullWidth
               required
-              placeholder="Enter the audience title..."
+                placeholder={t('gaPairs.audienceTitlePlaceholder')}
             />
             <TextField
-              label="Audience Description"
+                label={t('gaPairs.audienceDescription')}
               value={newGaPair.audienceDesc || ''}
               onChange={(e) => setNewGaPair({ ...newGaPair, audienceDesc: e.target.value })}
               multiline
               rows={3}
               fullWidth
-              placeholder="Describe the target audience in detail..."
+                placeholder={t('gaPairs.audienceDescPlaceholder')}
             />
             <FormControlLabel
               control={
@@ -565,7 +582,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
                   onChange={(e) => setNewGaPair({ ...newGaPair, isActive: e.target.checked })}
                 />
               }
-              label="Active"
+              label={t('gaPairs.active')}
             />
           </Box>
         </DialogContent>
@@ -581,14 +598,14 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
               isActive: true 
             });
           }}>
-            Cancel
+            {t('gaPairs.cancel')}
           </Button>
           <Button 
             onClick={handleAddGaPair} 
             variant="contained"
             disabled={!newGaPair.genreTitle?.trim() || !newGaPair.audienceTitle?.trim()}
           >
-            Add Genre-Audience Pair
+            {t('gaPairs.addPairButton')}
           </Button>
         </DialogActions>
       </Dialog>

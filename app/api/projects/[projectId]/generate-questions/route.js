@@ -12,7 +12,9 @@ export async function POST(request, { params }) {
     // 验证项目ID
     if (!projectId) {
       return NextResponse.json({ error: 'The project ID cannot be empty' }, { status: 400 });
-    }    // 获取请求体
+    }
+
+    // 获取请求体
     const { model, chunkIds, language = '中文', enableGaExpansion = false } = await request.json();
 
     if (!model) {

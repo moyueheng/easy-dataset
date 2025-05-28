@@ -18,10 +18,8 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Model cannot be empty' }, { status: 400 });
     }
 
-    // 根据是否启用GA扩展选择服务函数
-    const serviceFunc = enableGaExpansion 
-      ? questionService.generateQuestionsForChunkWithGA 
-      : questionService.generateQuestionsForChunk;
+    // 后续会根据是否有GA对来选择是否启用GA扩展选择服务函数
+    const serviceFunc = questionService.generateQuestionsForChunkWithGA;
 
     // 使用问题生成服务
     const result = await serviceFunc(projectId, chunkId, {
