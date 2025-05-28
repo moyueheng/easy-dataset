@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef} from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Chip,
@@ -14,11 +14,7 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
-import {
-  Psychology as PsychologyIcon,
-  Add as AddIcon,
-  Visibility as VisibilityIcon
-} from '@mui/icons-material';
+import { Psychology as PsychologyIcon, Add as AddIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import GaPairsManager from './GaPairsManager';
 
@@ -29,7 +25,7 @@ import GaPairsManager from './GaPairsManager';
  * @param {string} props.fileId - File ID
  * @param {string} props.fileName - File name for display
  */
-export default function GaPairsIndicator({ projectId, fileId, fileName='未命名文件' }) {
+export default function GaPairsIndicator({ projectId, fileId, fileName = '未命名文件' }) {
   const { t } = useTranslation();
   const [gaPairs, setGaPairs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +57,6 @@ export default function GaPairsIndicator({ projectId, fileId, fileName='未命�
       }
 
       setGaPairs(newGaPairs);
-
     } catch (error) {
       console.error('获取GA对状态失败:', error);
       setGaPairs([]);
@@ -79,7 +74,7 @@ export default function GaPairsIndicator({ projectId, fileId, fileName='未命�
 
   //监听外部事件
   useEffect(() => {
-    const handleRefresh = (event) => {
+    const handleRefresh = event => {
       const { projectId: eventProjectId, fileIds } = event.detail || {};
 
       if (eventProjectId === projectId && fileIds?.includes(String(fileId))) {
@@ -96,7 +91,7 @@ export default function GaPairsIndicator({ projectId, fileId, fileName='未命�
   const hasGaPairs = gaPairs.length > 0;
 
   //GA对变化回调处理
-  const handleGaPairsChange = useCallback((newGaPairs) => {
+  const handleGaPairsChange = useCallback(newGaPairs => {
     setGaPairs(newGaPairs || []);
   }, []);
 
@@ -147,16 +142,10 @@ export default function GaPairsIndicator({ projectId, fileId, fileName='未命�
 
       {/* Details Dialog */}
       <Dialog open={detailsOpen} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-        <DialogTitle>
-          GA Pairs for {fileName}
-        </DialogTitle>
+        <DialogTitle>GA Pairs for {fileName}</DialogTitle>
         <DialogContent>
           {detailsOpen && (
-              <GaPairsManager
-                  projectId={projectId}
-                  fileId={fileId}
-                  onGaPairsChange={handleGaPairsChange}
-              />
+            <GaPairsManager projectId={projectId} fileId={fileId} onGaPairsChange={handleGaPairsChange} />
           )}
         </DialogContent>
         <DialogActions>

@@ -11,26 +11,17 @@ export async function POST(request, { params }) {
     const body = await request.json();
 
     if (!projectId) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
     const { fileIds, modelConfigId, language = '中文', appendMode = false } = body;
 
     if (!fileIds || !Array.isArray(fileIds) || fileIds.length === 0) {
-      return NextResponse.json(
-        { error: 'File IDs array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'File IDs array is required' }, { status: 400 });
     }
 
     if (!modelConfigId) {
-      return NextResponse.json(
-        { error: 'Model configuration ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Model configuration ID is required' }, { status: 400 });
     }
 
     console.log('开始处理批量生成GA对请求');
@@ -45,7 +36,7 @@ export async function POST(request, { params }) {
       try {
         console.log(`正在验证文件: ${fileId}`);
         const fileInfo = await getUploadFileInfoById(fileId);
-        
+
         if (fileInfo && fileInfo.projectId === projectId) {
           console.log(`文件验证成功: ${fileInfo.fileName}`);
           validFiles.push(fileInfo);
@@ -66,7 +57,7 @@ export async function POST(request, { params }) {
 
     if (validFiles.length === 0) {
       return NextResponse.json(
-        { 
+        {
           error: 'No valid files found',
           debug: {
             projectId,
@@ -87,7 +78,7 @@ export async function POST(request, { params }) {
       validFiles,
       modelConfigId,
       language,
-        appendMode  // 传递追加模式参数
+      appendMode // 传递追加模式参数
     );
 
     // 统计结果
@@ -108,12 +99,8 @@ export async function POST(request, { params }) {
       },
       message: `Generated GA pairs for ${successCount} files, ${failureCount} failed, ${invalidFileIds.length} files not found`
     });
-
   } catch (error) {
     console.error('Error batch generating GA pairs:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to batch generate GA pairs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to batch generate GA pairs' }, { status: 500 });
   }
 }

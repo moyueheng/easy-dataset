@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getGaPairsByFileId, updateGaPair, toggleGaPairActive, batchUpdateGaPairs, saveGaPairs, hasGaPairs, deleteGaPairsByFileId, createGaPairs } from '@/lib/db/ga-pairs';
+import {
+  getGaPairsByFileId,
+  updateGaPair,
+  toggleGaPairActive,
+  batchUpdateGaPairs,
+  saveGaPairs,
+  hasGaPairs,
+  deleteGaPairsByFileId,
+  createGaPairs
+} from '@/lib/db/ga-pairs';
 import { getUploadFileInfoById } from '@/lib/db/upload-files';
 import { generateGaPairs } from '@/lib/services/ga-generation';
 import logger from '@/lib/util/logger';
@@ -15,10 +24,7 @@ export async function POST(request, { params }) {
 
     // 验证参数
     if (!projectId || !fileId) {
-      return NextResponse.json(
-        { error: 'Project ID and File ID are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID and File ID are required' }, { status: 400 });
     }
 
     logger.info(`Starting GA pairs generation for project: ${projectId}, file: ${fileId}, appendMode: ${appendMode}`);
@@ -26,15 +32,12 @@ export async function POST(request, { params }) {
     // 检查文件是否存在
     const file = await getUploadFileInfoById(fileId);
     if (!file || file.projectId !== projectId) {
-      return NextResponse.json(
-        { error: 'File not found or does not belong to the project' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'File not found or does not belong to the project' }, { status: 404 });
     }
 
     // 获取现有的GA对
     const existingGaPairs = await getGaPairsByFileId(fileId);
-    
+
     // 如果是追加模式且已有GA对，或者不是重新生成且已存在GA对
     if (!regenerate && !appendMode && existingGaPairs.length > 0) {
       return NextResponse.json({
@@ -47,10 +50,7 @@ export async function POST(request, { params }) {
     // 读取文件内容
     const fileContent = await getFileContent(projectId, file.fileName);
     if (!fileContent) {
-      return NextResponse.json(
-        { error: 'Failed to read file content' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to read file content' }, { status: 500 });
     }
 
     logger.info(`File content loaded successfully, length: ${fileContent.length}`);
@@ -59,7 +59,7 @@ export async function POST(request, { params }) {
     try {
       const { getActiveModel } = await import('@/lib/services/models');
       const activeModel = await getActiveModel(projectId);
-      
+
       if (!activeModel) {
         logger.error('No active model configuration found');
         return NextResponse.json(
@@ -80,22 +80,25 @@ export async function POST(request, { params }) {
     // 调用 LLM 生成 GA 对
     logger.info(`Generating GA pairs for file: ${file.fileName}`);
     let generatedGaPairs;
-    
+
     try {
       generatedGaPairs = await generateGaPairs(fileContent, projectId, language);
-      
+
       if (!generatedGaPairs || generatedGaPairs.length === 0) {
         logger.warn('No GA pairs generated from LLM');
         return NextResponse.json(
-          { error: 'No GA pairs could be generated from the file content. The content might be too short or not suitable for GA pair generation.' },
+          {
+            error:
+              'No GA pairs could be generated from the file content. The content might be too short or not suitable for GA pair generation.'
+          },
           { status: 400 }
         );
       }
-      
+
       logger.info(`Successfully generated ${generatedGaPairs.length} GA pairs from LLM`);
     } catch (generationError) {
       logger.error('GA pairs generation failed:', generationError);
-      
+
       // 现有的错误处理逻辑...
       let errorMessage = 'Failed to generate GA pairs';
       if (generationError.message.includes('No active model')) {
@@ -107,11 +110,8 @@ export async function POST(request, { params }) {
       } else {
         errorMessage = `AI model error: ${generationError.message}`;
       }
-      
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 500 }
-      );
+
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     // 保存到数据库
@@ -119,7 +119,7 @@ export async function POST(request, { params }) {
       if (appendMode && existingGaPairs.length > 0) {
         // 追加模式：只保存新生成的GA对，不删除现有的
         logger.info(`Appending ${generatedGaPairs.length} new GA pairs to existing ${existingGaPairs.length} pairs`);
-        
+
         // 为新GA对设置正确的pairNumber
         const startPairNumber = existingGaPairs.length + 1;
         const newGaPairData = generatedGaPairs.map((pair, index) => ({
@@ -132,7 +132,7 @@ export async function POST(request, { params }) {
           audienceDesc: pair.audience?.description || pair.audienceDesc || '',
           isActive: true
         }));
-        
+
         // 只创建新的GA对，不删除现有的
         await createGaPairs(newGaPairData);
         logger.info('New GA pairs appended to database successfully');
@@ -156,7 +156,7 @@ export async function POST(request, { params }) {
       // 追加模式：只返回新生成的GA对
       const newGaPairs = allGaPairs.slice(existingGaPairs.length);
       logger.info(`Successfully appended ${newGaPairs.length} GA pairs. Total pairs: ${allGaPairs.length}`);
-      
+
       return NextResponse.json({
         success: true,
         message: `${newGaPairs.length} new GA pairs appended successfully`,
@@ -173,7 +173,6 @@ export async function POST(request, { params }) {
         data: allGaPairs
       });
     }
-
   } catch (error) {
     logger.error('Unexpected error in GA pairs generation:', error);
     return NextResponse.json(
@@ -191,10 +190,7 @@ export async function GET(request, { params }) {
     const { projectId, fileId } = params;
 
     if (!projectId || !fileId) {
-      return NextResponse.json(
-        { error: 'Project ID and File ID are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID and File ID are required' }, { status: 400 });
     }
 
     const gaPairs = await getGaPairsByFileId(fileId);
@@ -205,10 +201,7 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error('Error getting GA pairs:', error);
-    return NextResponse.json(
-      { error: 'Failed to get GA pairs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to get GA pairs' }, { status: 500 });
   }
 }
 
@@ -221,25 +214,19 @@ export async function PUT(request, { params }) {
     const body = await request.json();
 
     if (!projectId || !fileId) {
-      return NextResponse.json(
-        { error: 'Project ID and File ID are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID and File ID are required' }, { status: 400 });
     }
 
     const { updates } = body;
 
     if (!updates || !Array.isArray(updates)) {
-      return NextResponse.json(
-        { error: 'Updates array is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Updates array is required' }, { status: 400 });
     }
 
     logger.info(`Replacing all GA pairs for file ${fileId} with ${updates.length} pairs`);
 
     // 使用数据库事务确保原子性操作
-    const results = await db.$transaction(async (tx) => {
+    const results = await db.$transaction(async tx => {
       // 1. 先删除所有现有的GA对
       await tx.gaPairs.deleteMany({
         where: { fileId }
@@ -281,13 +268,9 @@ export async function PUT(request, { params }) {
       success: true,
       data: results
     });
-
   } catch (error) {
     logger.error('Error updating GA pairs:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to update GA pairs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to update GA pairs' }, { status: 500 });
   }
 }
 
@@ -300,19 +283,13 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
 
     if (!projectId || !fileId) {
-      return NextResponse.json(
-        { error: 'Project ID and File ID are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Project ID and File ID are required' }, { status: 400 });
     }
 
     const { gaPairId, isActive } = body;
 
     if (!gaPairId || typeof isActive !== 'boolean') {
-      return NextResponse.json(
-        { error: 'GA pair ID and active status are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'GA pair ID and active status are required' }, { status: 400 });
     }
 
     const updatedPair = await toggleGaPairActive(gaPairId, isActive);
@@ -323,10 +300,7 @@ export async function PATCH(request, { params }) {
     });
   } catch (error) {
     console.error('Error toggling GA pair active status:', error);
-    return NextResponse.json(
-      { error: 'Failed to toggle GA pair active status' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to toggle GA pair active status' }, { status: 500 });
   }
 }
 
@@ -336,10 +310,10 @@ async function getFileContent(projectId, fileName) {
     const { getProjectRoot } = await import('@/lib/db/base');
     const path = await import('path');
     const fs = await import('fs');
-    
+
     const projectRoot = await getProjectRoot();
     const filePath = path.join(projectRoot, projectId, 'files', fileName);
-    
+
     return await fs.promises.readFile(filePath, 'utf8');
   } catch (error) {
     logger.error('Failed to read file content:', error);

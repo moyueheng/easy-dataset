@@ -42,16 +42,18 @@ export async function POST(request, { params }) {
         })
       );
       chunks = chunks.filter(Boolean); // 过滤掉不存在的文本块
-    }    if (chunks.length === 0) {
+    }
+    if (chunks.length === 0) {
       return NextResponse.json({ error: 'No valid text blocks found' }, { status: 404 });
     }
 
     const results = [];
-    const errors =[];
+    const errors = [];
 
     // 获取项目 task-config 信息
     const taskConfig = await getTaskConfig(projectId);
-    const { questionGenerationLength } = taskConfig;    for (const chunk of chunks) {
+    const { questionGenerationLength } = taskConfig;
+    for (const chunk of chunks) {
       try {
         // 根据文本长度自动计算问题数量
         const questionNumber = Math.floor(chunk.length / questionGenerationLength);
@@ -60,16 +62,16 @@ export async function POST(request, { params }) {
         if (enableGaExpansion) {
           // 使用GA增强的问题生成
           result = await generateQuestionsForChunkWithGA(projectId, chunk.id, {
-            model, 
-            language, 
+            model,
+            language,
             number: questionNumber,
             enableGaExpansion: true
           });
         } else {
           // 使用标准问题生成
           result = await generateQuestionsForChunk(projectId, chunk.id, {
-            model, 
-            language, 
+            model,
+            language,
             number: questionNumber
           });
         }

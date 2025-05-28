@@ -45,7 +45,7 @@ export default function FileList({
   setPageLoading
 }) {
   const { t } = useTranslation();
-  
+
   // 现有的状态
   const [array, setArray] = useState([]);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -67,15 +67,13 @@ export default function FileList({
     setArray(prevArray => {
       let newArray;
       const stringFileId = String(fileId);
-      
+
       if (isChecked) {
-        newArray = prevArray.includes(stringFileId) 
-          ? prevArray 
-          : [...prevArray, stringFileId];
+        newArray = prevArray.includes(stringFileId) ? prevArray : [...prevArray, stringFileId];
       } else {
         newArray = prevArray.filter(item => item !== stringFileId);
       }
-      
+
       if (typeof sendToFileUploader === 'function') {
         sendToFileUploader(newArray);
       }
@@ -160,13 +158,13 @@ export default function FileList({
   const fetchProjectModel = async () => {
     try {
       setLoadingModel(true);
-      
+
       // 首先获取项目信息
       const response = await fetch(`/api/projects/${projectId}`);
       if (!response.ok) {
         throw new Error(t('gaPairs.fetchProjectInfoFailed', { status: response.status }));
       }
-      
+
       const projectData = await response.json();
 
       // 获取模型配置
@@ -174,26 +172,24 @@ export default function FileList({
       if (!modelResponse.ok) {
         throw new Error(t('gaPairs.fetchModelConfigFailed', { status: modelResponse.status }));
       }
-      
+
       const modelConfigData = await modelResponse.json();
-      
+
       if (modelConfigData.data && Array.isArray(modelConfigData.data)) {
         // 优先使用项目默认模型
         let targetModel = null;
-        
+
         if (projectData.defaultModelConfigId) {
-          targetModel = modelConfigData.data.find(
-            model => model.id === projectData.defaultModelConfigId
-          );
+          targetModel = modelConfigData.data.find(model => model.id === projectData.defaultModelConfigId);
         }
-        
+
         // 如果没有默认模型，使用第一个可用的模型
         if (!targetModel) {
-          targetModel = modelConfigData.data.find(m => 
-            m.modelName && m.endpoint && (m.providerId === 'ollama' || m.apiKey)
+          targetModel = modelConfigData.data.find(
+            m => m.modelName && m.endpoint && (m.providerId === 'ollama' || m.apiKey)
           );
         }
-        
+
         if (targetModel) {
           setProjectModel(targetModel);
         }
@@ -213,7 +209,7 @@ export default function FileList({
     }
 
     const modelToUse = projectModel || selectedModelInfo;
-    
+
     if (!modelToUse || !modelToUse.id) {
       setGenError(t('gaPairs.noDefaultModel'));
       return;
@@ -237,7 +233,7 @@ export default function FileList({
       setGenResult(null);
 
       const stringFileIds = array.map(id => String(id));
-      
+
       // 获取当前语言环境
       const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
 
@@ -257,18 +253,20 @@ export default function FileList({
       const responseText = await response.text();
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: t('gaPairs.requestFailed', { status: response.status }) }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: t('gaPairs.requestFailed', { status: response.status }) }));
         throw new Error(errorData.error || t('gaPairs.requestFailed', { status: response.status }));
       }
 
       const result = JSON.parse(responseText);
-      
+
       if (result.success) {
         setGenResult({
           total: result.data?.length || 0,
           success: result.data?.filter(r => r.success).length || 0
         });
-        
+
         // 成功后清空选择状态
         setArray([]);
         if (typeof sendToFileUploader === 'function') {
@@ -278,17 +276,17 @@ export default function FileList({
         console.log(t('gaPairs.batchGenerationSuccess', { count: result.summary?.success || 0 }));
 
         //发送全局刷新事件
-        const successfulFileIds = result.data
-            ?.filter(item => item.success)
-            ?.map(item => String(item.fileId)) || [];
+        const successfulFileIds = result.data?.filter(item => item.success)?.map(item => String(item.fileId)) || [];
 
         if (successfulFileIds.length > 0) {
-          window.dispatchEvent(new CustomEvent('refreshGaPairsIndicators', {
-            detail: {
-              projectId,
-              fileIds: successfulFileIds
-            }
-          }));
+          window.dispatchEvent(
+            new CustomEvent('refreshGaPairsIndicators', {
+              detail: {
+                projectId,
+                fileIds: successfulFileIds
+              }
+            })
+          );
         }
       } else {
         setGenError(result.error || t('gaPairs.generationFailed'));
@@ -311,7 +309,7 @@ export default function FileList({
         sendToFileUploader(allFileIds);
       }
     }
-    
+
     // 获取项目模型配置
     fetchProjectModel();
     setBatchGenDialogOpen(true);
@@ -340,10 +338,8 @@ export default function FileList({
     >
       {/* 修改标题部分，添加批量生成按钮 */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="subtitle1">
-          {t('textSplit.uploadedDocuments', { count: files.total })}
-        </Typography>
-        
+        <Typography variant="subtitle1">{t('textSplit.uploadedDocuments', { count: files.total })}</Typography>
+
         {/* 批量生成GA对按钮 */}
         {files.total > 0 && (
           <Button
@@ -386,7 +382,7 @@ export default function FileList({
                         <VisibilityIcon />
                       </IconButton>
                     </Tooltip>
-                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName}/>
+                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
                     <Tooltip title={t('textSplit.download')}>
                       <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
                         <Download />
@@ -434,14 +430,10 @@ export default function FileList({
               {/* 追加模式选择 */}
               <Box sx={{ mt: 2, mb: 2 }}>
                 <FormControlLabel
-                    control={
-                      <Switch
-                          checked={appendMode}
-                          onChange={(e) => setAppendMode(e.target.checked)}
-                          color="primary"
-                      />
-                    }
-                    label={`${t('gaPairs.appendMode')}（${t('gaPairs.appendModeDescription')}）`}
+                  control={
+                    <Switch checked={appendMode} onChange={e => setAppendMode(e.target.checked)} color="primary" />
+                  }
+                  label={`${t('gaPairs.appendMode')}（${t('gaPairs.appendModeDescription')}）`}
                 />
               </Box>
 
@@ -453,7 +445,10 @@ export default function FileList({
               ) : projectModel ? (
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="textSecondary">
-                    {t('gaPairs.usingModel')}: <strong>{projectModel.providerName}: {projectModel.modelName}</strong>
+                    {t('gaPairs.usingModel')}:{' '}
+                    <strong>
+                      {projectModel.providerName}: {projectModel.modelName}
+                    </strong>
                   </Typography>
                 </Box>
               ) : (
@@ -483,9 +478,7 @@ export default function FileList({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeBatchGenDialog}>
-            {genResult ? t('common.close') : t('common.cancel')}
-          </Button>
+          <Button onClick={closeBatchGenDialog}>{genResult ? t('common.close') : t('common.cancel')}</Button>
           {!genResult && (
             <Button
               onClick={handleBatchGenerateGAPairs}

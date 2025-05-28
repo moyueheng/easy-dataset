@@ -11,7 +11,7 @@ export async function POST(request, { params }) {
     // 验证项目ID和文本块ID
     if (!projectId || !chunkId) {
       return NextResponse.json({ error: 'Project ID or text block ID cannot be empty' }, { status: 400 });
-    }    // 获取请求体
+    } // 获取请求体
     const { model, language = '中文', number, enableGaExpansion = false } = await request.json();
 
     if (!model) {
