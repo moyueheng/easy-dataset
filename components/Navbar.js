@@ -94,7 +94,7 @@ export default function Navbar({ projects = [], currentProject }) {
         }
       })
       .catch(error => {
-        toast.error('获取模型列表失败');
+        toast.error('get model list error');
       });
     // 跳转到新选择的项目页面
     window.location.href = `/projects/${newProjectId}/text-split`;
