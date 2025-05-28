@@ -244,7 +244,7 @@ export default function FileList({
         language: currentLanguage
       };
 
-      const response = await fetch(`/api/projects/${projectId}/ga-pairs/batch-generate`, {
+      const response = await fetch(`/api/projects/${projectId}/batch-generateGA`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)
