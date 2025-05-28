@@ -28,6 +28,7 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 
 /**
  * GA Pairs Manager Component
@@ -103,7 +104,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
       console.log('Starting GA pairs generation...');
 
       // Get current language from i18n
-      const currentLanguage = t('language') === 'English' ? 'English' : '中文';
+      const currentLanguage = i18n.language === 'en' ? 'en' : '中文';
 
       const response = await fetch(`/api/projects/${projectId}/files/${fileId}/ga-pairs`, {
         method: 'POST',
