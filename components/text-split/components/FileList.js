@@ -16,7 +16,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -56,6 +58,7 @@ export default function FileList({
   const [genResult, setGenResult] = useState(null);
   const [projectModel, setProjectModel] = useState(null);
   const [loadingModel, setLoadingModel] = useState(false);
+  const [appendMode, setAppendMode] = useState(false);
 
   // 获取当前选中的模型信息
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
@@ -161,7 +164,7 @@ export default function FileList({
       // 首先获取项目信息
       const response = await fetch(`/api/projects/${projectId}`);
       if (!response.ok) {
-        throw new Error(`获取项目信息失败: ${response.status}`);
+        throw new Error(t('gaPairs.fetchProjectInfoFailed', { status: response.status }));
       }
       
       const projectData = await response.json();
@@ -169,7 +172,7 @@ export default function FileList({
       // 获取模型配置
       const modelResponse = await fetch(`/api/projects/${projectId}/model-config`);
       if (!modelResponse.ok) {
-        throw new Error(`获取模型配置失败: ${modelResponse.status}`);
+        throw new Error(t('gaPairs.fetchModelConfigFailed', { status: modelResponse.status }));
       }
       
       const modelConfigData = await modelResponse.json();
@@ -196,7 +199,7 @@ export default function FileList({
         }
       }
     } catch (error) {
-      console.error("获取项目模型配置时出错:", error);
+      console.error(t('gaPairs.fetchProjectModelError'), error);
     } finally {
       setLoadingModel(false);
     }
@@ -205,14 +208,14 @@ export default function FileList({
   // 新增：批量生成GA对的处理函数
   const handleBatchGenerateGAPairs = async () => {
     if (array.length === 0) {
-      setGenError('请先选择至少一个文件');
+      setGenError(t('gaPairs.selectAtLeastOneFile'));
       return;
     }
 
     const modelToUse = projectModel || selectedModelInfo;
     
     if (!modelToUse || !modelToUse.id) {
-      setGenError('未设置默认模型，请先在项目设置中配置模型');
+      setGenError(t('gaPairs.noDefaultModel'));
       return;
     }
 
@@ -224,7 +227,7 @@ export default function FileList({
 
     // 检查API密钥（除了ollama模型）
     if (modelToUse.providerId !== 'ollama' && !modelToUse.apiKey) {
-      setGenError('模型未配置API密钥，请在模型设置中添加API密钥');
+      setGenError(t('gaPairs.missingApiKey'));
       return;
     }
 
@@ -241,7 +244,8 @@ export default function FileList({
       const requestData = {
         fileIds: stringFileIds,
         modelConfigId: modelToUse.id,
-        language: currentLanguage
+        language: currentLanguage,
+        appendMode: appendMode
       };
 
       const response = await fetch(`/api/projects/${projectId}/batch-generateGA`, {
@@ -253,8 +257,8 @@ export default function FileList({
       const responseText = await response.text();
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: '解析错误响应失败' }));
-        throw new Error(errorData.error || `请求失败 (${response.status}): ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({ error: t('gaPairs.requestFailed', { status: response.status }) }));
+        throw new Error(errorData.error || t('gaPairs.requestFailed', { status: response.status }));
       }
 
       const result = JSON.parse(responseText);
@@ -270,8 +274,8 @@ export default function FileList({
         if (typeof sendToFileUploader === 'function') {
           sendToFileUploader([]);
         }
-        
-        console.log(`成功为 ${result.summary?.success || 0} 个文件生成GA对`);
+
+        console.log(t('gaPairs.batchGenerationSuccess', { count: result.summary?.success || 0 }));
 
         //发送全局刷新事件
         const successfulFileIds = result.data
@@ -287,11 +291,11 @@ export default function FileList({
           }));
         }
       } else {
-        setGenError(result.error || '生成失败');
+        setGenError(result.error || t('gaPairs.generationFailed'));
       }
     } catch (error) {
-      console.error('批量生成GA对失败:', error);
-      setGenError(`生成过程发生错误: ${error.message || '未知错误'}`);
+      console.error(t('gaPairs.batchGenerationFailed'), error);
+      setGenError(t('gaPairs.generationError', { error: error.message || t('common.unknownError') }));
     } finally {
       setGenerating(false);
     }
@@ -318,6 +322,7 @@ export default function FileList({
     setBatchGenDialogOpen(false);
     setGenError(null);
     setGenResult(null);
+    setAppendMode(false); // 重置追加模式
   };
 
   return (
@@ -349,7 +354,7 @@ export default function FileList({
             onClick={openBatchGenDialog}
             disabled={loading}
           >
-            批量生成GA对
+            {t('gaPairs.batchGenerate')}
           </Button>
         )}
       </Box>
@@ -424,22 +429,37 @@ export default function FileList({
         <DialogContent>
           {!genResult && (
             <DialogContentText>
-              将为选中的 {array.length} 个文件批量生成GA对，该操作可能需要一些时间。
+              {t('gaPairs.batchGenerateDescription', { count: array.length })}
+
+              {/* 追加模式选择 */}
+              <Box sx={{ mt: 2, mb: 2 }}>
+                <FormControlLabel
+                    control={
+                      <Switch
+                          checked={appendMode}
+                          onChange={(e) => setAppendMode(e.target.checked)}
+                          color="primary"
+                      />
+                    }
+                    label={`${t('gaPairs.appendMode')}（${t('gaPairs.appendModeDescription')}）`}
+                />
+              </Box>
+
               {loadingModel ? (
                 <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
                   <CircularProgress size={16} sx={{ mr: 1 }} />
-                  <Typography variant="body2">加载项目模型中...</Typography>
+                  <Typography variant="body2">{t('gaPairs.loadingProjectModel')}</Typography>
                 </Box>
               ) : projectModel ? (
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="textSecondary">
-                    使用模型: <strong>{projectModel.providerName}: {projectModel.modelName}</strong>
+                    {t('gaPairs.usingModel')}: <strong>{projectModel.providerName}: {projectModel.modelName}</strong>
                   </Typography>
                 </Box>
               ) : (
                 <Box sx={{ mt: 1 }}>
                   <Typography variant="body2" color="error">
-                    未设置默认模型，请先在项目设置中配置模型
+                    {t('gaPairs.noDefaultModel')}
                   </Typography>
                 </Box>
               )}
@@ -457,14 +477,14 @@ export default function FileList({
           {genResult && (
             <Box sx={{ mt: 2, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
               <Typography variant="body2" color="success.contrastText">
-                批量生成完成！成功为 {genResult.success}/{genResult.total} 个文件生成了GA对。
+                {t('gaPairs.batchGenCompleted', { success: genResult.success, total: genResult.total })}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeBatchGenDialog}>
-            {genResult ? '关闭' : '取消'}
+            {genResult ? t('common.close') : t('common.cancel')}
           </Button>
           {!genResult && (
             <Button
@@ -473,7 +493,7 @@ export default function FileList({
               disabled={generating || array.length === 0 || !projectModel}
               startIcon={generating ? <CircularProgress size={20} /> : <PsychologyIcon />}
             >
-              {generating ? '正在生成...' : '开始生成'}
+              {generating ? t('gaPairs.generating') : t('gaPairs.startGeneration')}
             </Button>
           )}
         </DialogActions>

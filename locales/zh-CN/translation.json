@@ -751,6 +751,22 @@
     "saveOperationFailed": "保存操作失败",
     "serviceNotAvailable": "文体-受众对生成服务不可用。请检查您的API配置。",
     "requestFailed": "请求失败 ({{status}})。请重试。",
-    "internalServerError": "发生内部服务器错误。"
+    "internalServerError": "发生内部服务器错误。",
+    "batchGenerate": "批量生成GA对",
+    "batchGenerateDescription": "将为选中的 {{count}} 个文件批量生成GA对，该操作可能需要一些时间。",
+    "appendMode": "追加模式",
+    "appendModeDescription": "为已有GA对的文件生成更多GA对，而不是覆盖",
+    "selectAtLeastOneFile": "请先选择至少一个文件",
+    "noDefaultModel": "未设置默认模型，请先在项目设置中配置模型",
+    "incompleteModelConfig": "模型配置不完整，请检查模型设置",
+    "missingApiKey": "模型未配置API密钥，请在模型设置中添加API密钥",
+    "loadingProjectModel": "加载项目模型中...",
+    "usingModel": "使用模型",
+    "startGeneration": "开始生成",    "batchGenCompleted": "批量生成完成！成功为 {{success}}/{{total}} 个文件生成了GA对。",
+    "generationError": "生成过程发生错误: {{error}}",    "fetchProjectInfoFailed": "获取项目信息失败: {{status}}",
+    "fetchModelConfigFailed": "获取模型配置失败: {{status}}",
+    "fetchProjectModelError": "获取项目模型配置时出错",
+    "batchGenerationFailed": "批量生成GA对失败",
+    "batchGenerationSuccess": "成功为 {{count}} 个文件生成GA对"
   }
 }

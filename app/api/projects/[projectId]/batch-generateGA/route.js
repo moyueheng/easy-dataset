@@ -17,7 +17,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    const { fileIds, modelConfigId, language = '中文' } = body;
+    const { fileIds, modelConfigId, language = '中文', appendMode = false } = body;
 
     if (!fileIds || !Array.isArray(fileIds) || fileIds.length === 0) {
       return NextResponse.json(
@@ -81,11 +81,13 @@ export async function POST(request, { params }) {
 
     // 批量生成 GA 对
     console.log('开始批量生成GA对...');
+    console.log('追加模式:', appendMode);
     const results = await batchGenerateGaPairs(
       projectId,
       validFiles,
       modelConfigId,
-      language
+      language,
+        appendMode  // 传递追加模式参数
     );
 
     // 统计结果

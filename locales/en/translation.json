@@ -751,6 +751,22 @@
     "saveOperationFailed": "Save operation failed",
     "serviceNotAvailable": "GA Pairs generation service is not available. Please check your API configuration.",
     "requestFailed": "Request failed ({{status}}). Please try again.",
-    "internalServerError": "Internal server error occurred."
+    "internalServerError": "Internal server error occurred.",
+    "batchGenerate": "Batch Generate GA Pairs",
+    "batchGenerateDescription": "Will batch generate GA pairs for {{count}} selected files. This operation may take some time.",
+    "appendMode": "Append Mode",
+    "appendModeDescription": "Generate additional GA pairs for files that already have GA pairs, rather than overwriting",
+    "selectAtLeastOneFile": "Please select at least one file first",
+    "noDefaultModel": "No default model set, please configure a model in project settings first",
+    "incompleteModelConfig": "Model configuration is incomplete, please check model settings",
+    "missingApiKey": "Model API key not configured, please add API key in model settings",
+    "loadingProjectModel": "Loading project model...",
+    "usingModel": "Using model",
+    "startGeneration": "Start Generation",    "batchGenCompleted": "Batch generation completed! Successfully generated GA pairs for {{success}}/{{total}} files.",
+    "generationError": "Error occurred during generation: {{error}}",    "fetchProjectInfoFailed": "Failed to fetch project info: {{status}}",
+    "fetchModelConfigFailed": "Failed to fetch model config: {{status}}",
+    "fetchProjectModelError": "Error fetching project model configuration",
+    "batchGenerationFailed": "Batch GA pair generation failed",
+    "batchGenerationSuccess": "Successfully generated GA pairs for {{count}} files"
   }
 }
