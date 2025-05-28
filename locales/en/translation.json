@@ -748,6 +748,9 @@
     "serverError": "Server error ({{status}}). Please try again later.",
     "emptyResponse": "Empty response from generation service",
     "generationFailed": "Generation failed",
-    "saveOperationFailed": "Save operation failed"
+    "saveOperationFailed": "Save operation failed",
+    "serviceNotAvailable": "GA Pairs generation service is not available. Please check your API configuration.",
+    "requestFailed": "Request failed ({{status}}). Please try again.",
+    "internalServerError": "Internal server error occurred."
   }
 }

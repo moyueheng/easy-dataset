@@ -748,6 +748,9 @@
     "serverError": "服务器错误 ({{status}})。请稍后重试。",
     "emptyResponse": "生成服务返回空响应",
     "generationFailed": "生成失败",
-    "saveOperationFailed": "保存操作失败"
+    "saveOperationFailed": "保存操作失败",
+    "serviceNotAvailable": "文体-受众对生成服务不可用。请检查您的API配置。",
+    "requestFailed": "请求失败 ({{status}})。请重试。",
+    "internalServerError": "发生内部服务器错误。"
   }
 }

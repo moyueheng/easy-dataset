@@ -119,7 +119,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
         let errorMessage = t('gaPairs.generateError');
         
         if (response.status === 404) {
-          errorMessage = 'GA Pairs generation service is not available. Please check your API configuration.';
+          errorMessage = t('gaPairs.serviceNotAvailable');
         } else if (response.status === 400) {
           try {
             const errorResult = await response.json();
@@ -131,7 +131,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
               errorMessage = errorResult.error || errorMessage;
             }
           } catch (parseError) {
-            errorMessage = `Request failed (${response.status}). Please try again.`;
+            errorMessage = t('gaPairs.requestFailed', { status: response.status });
           }
         } else if (response.status === 500) {
           try {
@@ -143,7 +143,7 @@ export default function GaPairsManager({ projectId, fileId, onGaPairsChange }) {
             }
           } catch (parseError) {
             console.error('Failed to parse error response:', parseError);
-            errorMessage = t('gaPairs.serverError', { status: response.status });
+            errorMessage = errorResult.error || t('gaPairs.internalServerError');
           }
         }
         
