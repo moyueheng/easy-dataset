@@ -235,7 +235,7 @@ export default function FileList({
       const stringFileIds = array.map(id => String(id));
 
       // 获取当前语言环境
-      const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
+      const currentLanguage = i18n.language === 'en' ? 'en' : '中文';
 
       const requestData = {
         fileIds: stringFileIds,
