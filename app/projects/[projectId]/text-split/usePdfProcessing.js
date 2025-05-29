@@ -80,7 +80,7 @@ export default function usePdfProcessing(projectId) {
         }
 
         //提示后台任务进行中
-        toast.success(t('tasks.createSuccess', { defaultValue: '检测到PDF文件，系统将创建后台任务解析文件' }));
+        toast.success(t('tasks.createSuccess', { defaultValue: t("textSplit.pdfProcessingToast") }));
 
       } catch (error) {
         console.error(t('textSplit.pdfProcessingFailed'), error);
