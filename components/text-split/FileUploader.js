@@ -13,6 +13,7 @@ import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import PdfProcessingDialog from './components/PdfProcessingDialog';
 import DomainTreeActionDialog from './components/DomainTreeActionDialog';
 import i18n from '@/lib/i18n';
+import TurndownService from 'turndown';
 
 /**
  * File uploader component
@@ -230,8 +231,23 @@ export default function FileUploader({
         // 如果是 docx 文件，先转换为 markdown
         if (file.name.endsWith('.docx')) {
           const arrayBuffer = await file.arrayBuffer();
-          const result = await mammoth.convertToMarkdown({ arrayBuffer });
-          fileContent = result.value;
+          const htmlResult = await mammoth.convertToHtml(
+            { arrayBuffer },
+            {
+              convertImage: image => {
+                return mammoth.docx.paragraph({
+                  children: [
+                    mammoth.docx.textRun({
+                      text: ''
+                    })
+                  ]
+                });
+              }
+            }
+          );
+          const turndownService = new TurndownService();
+          fileContent = turndownService.turndown(htmlResult.value);
+          console.log(222, fileContent);
           fileName = file.name.replace('.docx', '.md');
         } else {
           // 对于 md 和 txt 文件，直接读取内容
@@ -244,7 +260,7 @@ export default function FileUploader({
           fileName = file.name.replace('.txt', '.md');
         }
 
-        // 使用自定义请求头发送文件
+        // // 使用自定义请求头发送文件
         const response = await fetch(`/api/projects/${projectId}/files`, {
           method: 'POST',
           headers: {

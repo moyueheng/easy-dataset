@@ -93,7 +93,6 @@ export async function POST(request, { params }) {
     if (!files || files.length === 0) {
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
-
     const results = [];
 
     for (const file of files) {
@@ -116,7 +115,6 @@ export async function POST(request, { params }) {
 
       // 分割文本
       const chunks = splitTextContent(text, textSplitSettings.minChars, textSplitSettings.maxChars);
-
       // 保存分割后的文本片段
       const chunkResults = [];
       for (let i = 0; i < chunks.length; i++) {
