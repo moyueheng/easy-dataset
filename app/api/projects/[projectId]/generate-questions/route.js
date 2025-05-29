@@ -64,8 +64,7 @@ export async function POST(request, { params }) {
           result = await generateQuestionsForChunkWithGA(projectId, chunk.id, {
             model,
             language,
-            number: questionNumber,
-            enableGaExpansion: true
+            number: questionNumber
           });
         } else {
           // 使用标准问题生成
