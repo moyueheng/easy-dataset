@@ -76,7 +76,11 @@ export default function useQuestionGeneration(projectId, taskSettings) {
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ model, language: currentLanguage })
+            body: JSON.stringify({
+              model,
+              language: currentLanguage,
+              enableGaExpansion: true // 默认启用GA扩展
+            })
           });
 
           if (!response.ok) {
@@ -112,7 +116,11 @@ export default function useQuestionGeneration(projectId, taskSettings) {
                   headers: {
                     'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ model, language: currentLanguage })
+                  body: JSON.stringify({
+                    model,
+                    language: currentLanguage,
+                    enableGaExpansion: true // 默认启用GA扩展
+                  })
                 }
               );
 
