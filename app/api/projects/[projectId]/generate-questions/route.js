@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getProjectChunks } from '@/lib/file/text-splitter';
-import LLMClient from '@/lib/llm/core/index';
-import getQuestionPrompt from '@/lib/llm/prompts/question';
-import getQuestionEnPrompt from '@/lib/llm/prompts/questionEn';
 import { getTaskConfig } from '@/lib/db/projects';
-import { saveQuestions } from '@/lib/db/questions';
 import { getChunkById } from '@/lib/db/chunks';
-
-const { extractJsonFromLLMOutput } = require('@/lib/llm/common/util');
+import { generateQuestionsForChunk, generateQuestionsForChunkWithGA } from '@/lib/services/questions';
 
 // 批量生成问题
 export async function POST(request, { params }) {
@@ -20,7 +15,7 @@ export async function POST(request, { params }) {
     }
 
     // 获取请求体
-    const { model, chunkIds, language = '中文' } = await request.json();
+    const { model, chunkIds, language = '中文', enableGaExpansion = false } = await request.json();
 
     if (!model) {
       return NextResponse.json({ error: 'The model cannot be empty' }, { status: 400 });
@@ -48,12 +43,9 @@ export async function POST(request, { params }) {
       );
       chunks = chunks.filter(Boolean); // 过滤掉不存在的文本块
     }
-
     if (chunks.length === 0) {
       return NextResponse.json({ error: 'No valid text blocks found' }, { status: 404 });
     }
-
-    const llmClient = new LLMClient(model);
 
     const results = [];
     const errors = [];
@@ -61,29 +53,48 @@ export async function POST(request, { params }) {
     // 获取项目 task-config 信息
     const taskConfig = await getTaskConfig(projectId);
     const { questionGenerationLength } = taskConfig;
-
     for (const chunk of chunks) {
       try {
         // 根据文本长度自动计算问题数量
         const questionNumber = Math.floor(chunk.length / questionGenerationLength);
 
-        // 根据语言选择相应的提示词函数
-        const promptFunc = language === 'en' ? getQuestionEnPrompt : getQuestionPrompt;
-        // 生成问题
-        const prompt = promptFunc(chunk.content, questionNumber, language);
-        const response = await llmClient.getResponse(prompt);
+        let result;
+        if (enableGaExpansion) {
+          // 使用GA增强的问题生成
+          result = await generateQuestionsForChunkWithGA(projectId, chunk.id, {
+            model,
+            language,
+            number: questionNumber
+          });
+        } else {
+          // 使用标准问题生成
+          result = await generateQuestionsForChunk(projectId, chunk.id, {
+            model,
+            language,
+            number: questionNumber
+          });
+        }
 
-        // 从LLM输出中提取JSON格式的问题列表
-        const questions = extractJsonFromLLMOutput(response);
-
-        if (questions && Array.isArray(questions)) {
-          // 保存问题到数据库
-          await saveQuestions(projectId, questions, chunk.id);
+        // 统一处理返回结果格式
+        if (result && result.questions && Array.isArray(result.questions)) {
+          // GA增强模式的结果格式
           results.push({
             chunkId: chunk.id,
             success: true,
-            questions,
-            total: questions.length
+            questions: result.questions,
+            total: result.total,
+            gaExpansionUsed: result.gaExpansionUsed,
+            gaPairsCount: result.gaPairsCount
+          });
+        } else if (result && result.labelQuestions && Array.isArray(result.labelQuestions)) {
+          // 标准模式的结果格式
+          results.push({
+            chunkId: chunk.id,
+            success: true,
+            questions: result.labelQuestions,
+            total: result.total,
+            gaExpansionUsed: false,
+            gaPairsCount: 0
           });
         } else {
           errors.push({
