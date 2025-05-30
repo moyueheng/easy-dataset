@@ -20,7 +20,8 @@ export default function EditableField({
   onChange,
   onSave,
   onCancel,
-  onOptimize
+  onOptimize,
+  tokenCount
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -36,6 +37,51 @@ export default function EditableField({
         <Typography variant="subtitle1" color="text.secondary" sx={{ mr: 1 }}>
           {label}
         </Typography>
+        {!editing && value && (
+          <>
+            {/* 字符数标签 */}
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                borderRadius: '12px',
+                bgcolor: 'info.50',
+                color: 'info.main',
+                px: 1,
+                py: 0.25,
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                border: '1px solid',
+                borderColor: 'info.100',
+                mr: 1
+              }}
+            >
+              {value.length} Characters
+            </Box>
+
+            {/* Token 标签 */}
+            {tokenCount > 0 && (
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  borderRadius: '12px',
+                  bgcolor: 'primary.50',
+                  color: 'primary.main',
+                  px: 1,
+                  py: 0.25,
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  border: '1px solid',
+                  borderColor: 'primary.100',
+                  mr: 1
+                }}
+              >
+                {tokenCount} Tokens
+              </Box>
+            )}
+          </>
+        )}
         {!editing && (
           <>
             <IconButton size="small" onClick={onEdit}>

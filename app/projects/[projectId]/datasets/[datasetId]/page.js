@@ -31,6 +31,8 @@ export default function DatasetDetailsPage({ params }) {
     viewChunk,
     datasetsAllCount,
     datasetsConfirmCount,
+    answerTokens,
+    cotTokens,
     shortcutsEnabled,
     setShortcutsEnabled,
     setSnackbar,
@@ -108,6 +110,7 @@ export default function DatasetDetailsPage({ params }) {
             setAnswerValue(currentDataset.answer);
           }}
           onOptimize={handleOpenOptimizeDialog}
+          tokenCount={answerTokens}
         />
 
         <EditableField
@@ -121,6 +124,7 @@ export default function DatasetDetailsPage({ params }) {
             setEditingCot(false);
             setCotValue(currentDataset.cot || '');
           }}
+          tokenCount={cotTokens}
         />
 
         <DatasetMetadata currentDataset={currentDataset} onViewChunk={handleViewChunk} />
