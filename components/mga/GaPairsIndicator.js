@@ -118,20 +118,14 @@ export default function GaPairsIndicator({ projectId, fileId, fileName = '未命
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       {hasGaPairs ? (
-        <>
-          <Chip
-            icon={<PsychologyIcon />}
-            label={`${activePairs.length}/${gaPairs.length} GA Pairs`}
-            size="small"
-            color={activePairs.length > 0 ? 'primary' : 'default'}
-            variant={activePairs.length > 0 ? 'filled' : 'outlined'}
-          />
-          <Tooltip title="View Details">
-            <IconButton size="small" onClick={handleOpenDialog}>
-              <VisibilityIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </>
+        <Chip
+          icon={<PsychologyIcon />}
+          label={`${activePairs.length}/${gaPairs.length} GA Pairs`}
+          size="small"
+          color={activePairs.length > 0 ? 'primary' : 'default'}
+          variant={activePairs.length > 0 ? 'filled' : 'outlined'}
+          onClick={handleOpenDialog}
+        />
       ) : (
         <Tooltip title="Generate GA Pairs">
           <IconButton size="small" onClick={handleOpenDialog} color="primary">

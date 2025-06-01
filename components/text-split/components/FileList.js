@@ -377,12 +377,12 @@ export default function FileList({
                       checked={array.includes(String(file.id))}
                       onChange={e => handleCheckboxChange(file.id, e.target.checked)}
                     />
-                    <Tooltip title={t('textSplit.viewDetails')}>
+                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
+                    {/* <Tooltip title={t('textSplit.viewDetails')}>
                       <IconButton color="primary" onClick={() => handleViewContent(file.id)}>
                         <VisibilityIcon />
                       </IconButton>
-                    </Tooltip>
-                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
+                    </Tooltip> */}
                     <Tooltip title={t('textSplit.download')}>
                       <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
                         <Download />
@@ -398,10 +398,14 @@ export default function FileList({
               >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <FileIcon color="primary" sx={{ mr: 1 }} />
-                  <ListItemText
-                    primary={file.fileName}
-                    secondary={`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
-                  />
+                  <Tooltip title={`${file.fileName}（${t('textSplit.viewDetails')}）`}>
+                    <ListItemText
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => handleViewContent(file.id)}
+                      primary={file.fileName}
+                      secondary={`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
+                    />
+                  </Tooltip>
                 </Box>
               </ListItem>
               {index < files.data.length - 1 && <Divider />}
