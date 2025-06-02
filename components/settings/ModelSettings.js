@@ -168,31 +168,20 @@ export default function ModelSettings({ projectId }) {
       if (!modelConfigForm || !modelConfigForm.endpoint) {
         return null;
       }
-      let url = modelConfigForm.endpoint.replace(/\/$/, ''); // 去除末尾的斜杠
       const providerId = modelConfigForm.providerId;
       console.log(providerId, 'getNewModels providerId');
-      url += providerId === 'ollama' ? '/tags' : '/models';
-      const res = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${modelConfigForm.apiKey}`
-        }
+
+      // 使用后端 API 代理请求
+      const res = await axios.post('/api/llm/fetch-models', {
+        endpoint: modelConfigForm.endpoint,
+        providerId: providerId,
+        apiKey: modelConfigForm.apiKey
       });
-      if (providerId === 'ollama') {
-        return res.data.models.map(item => ({
-          modelId: item.model,
-          modelName: item.name,
-          providerId
-        }));
-      } else {
-        return res.data.data.map(item => ({
-          modelId: item.id,
-          modelName: item.id,
-          providerId
-        }));
-      }
+
+      return res.data;
     } catch (err) {
       if (err.response && err.response.status === 401) {
-        toast.error('API Key invalid', { duration: 3000 });
+        toast.error('API Key Invalid', { duration: 3000 });
       } else {
         toast.error('Get Model List Error', { duration: 3000 });
       }

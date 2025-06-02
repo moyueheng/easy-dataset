@@ -7,7 +7,6 @@ import {
   saveQuestions,
   updateQuestion
 } from '@/lib/db/questions';
-import { getDatasetsCountByQuestionId } from '@/lib/db/datasets';
 
 // 获取项目的所有问题
 export async function GET(request, { params }) {

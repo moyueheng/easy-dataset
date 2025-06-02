@@ -82,6 +82,21 @@ export async function DELETE(request, { params }) {
     // 删除文件及其相关的文本块、问题和数据集
     const { stats, fileName, fileInfo } = await delUploadFileInfoById(fileId);
 
+    try {
+      const projectRoot = await getProjectRoot();
+      const projectPath = path.join(projectRoot, projectId);
+      const tocDir = path.join(projectPath, 'toc');
+      const baseName = path.basename(fileInfo.fileName, path.extname(fileInfo.fileName));
+      const tocPath = path.join(tocDir, `${baseName}-toc.json`);
+
+      // 检查文件是否存在再删除
+      await fs.unlink(tocPath);
+      console.log(`成功删除 TOC 文件: ${tocPath}`);
+    } catch (error) {
+      console.error(`删除 TOC 文件失败:`, error);
+      // 即使 TOC 文件删除失败，不影响整体结果
+    }
+
     // 如果选择了保持领域树不变，直接返回删除结果
     if (domainTreeAction === 'keep') {
       return NextResponse.json({
@@ -121,9 +136,6 @@ export async function DELETE(request, { params }) {
         deleteToc,
         project
       });
-
-      const tocPath = path.join(fileInfo.path, '../toc', fileInfo.fileName.replace('.md', '') + '-toc.json');
-      await fs.rm(tocPath, { recursive: true });
     } catch (error) {
       console.error('Error updating domain tree after file deletion:', error);
       // 即使领域树更新失败，也不影响文件删除的结果

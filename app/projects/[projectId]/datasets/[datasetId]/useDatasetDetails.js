@@ -34,6 +34,8 @@ export default function useDatasetDetails(projectId, datasetId) {
   const [viewChunk, setViewChunk] = useState(null);
   const [datasetsAllCount, setDatasetsAllCount] = useState(0);
   const [datasetsConfirmCount, setDatasetsConfirmCount] = useState(0);
+  const [answerTokens, setAnswerTokens] = useState(0);
+  const [cotTokens, setCotTokens] = useState(0);
   const model = useAtomValue(selectedModelInfoAtom);
   const [shortcutsEnabled, setShortcutsEnabled] = useState(() => {
     const storedValue = localStorage.getItem('shortcutsEnabled');
@@ -51,6 +53,14 @@ export default function useDatasetDetails(projectId, datasetId) {
       setAnswerValue(data.datasets?.answer);
       setDatasetsAllCount(data.total);
       setDatasetsConfirmCount(data.confirmedCount);
+
+      // 设置 Token 数量
+      if (data.answerTokens !== undefined) {
+        setAnswerTokens(data.answerTokens);
+      }
+      if (data.cotTokens !== undefined) {
+        setCotTokens(data.cotTokens);
+      }
     } catch (error) {
       setSnackbar({
         open: true,
@@ -333,6 +343,8 @@ export default function useDatasetDetails(projectId, datasetId) {
     viewChunk,
     datasetsAllCount,
     datasetsConfirmCount,
+    answerTokens,
+    cotTokens,
     shortcutsEnabled,
     setShortcutsEnabled,
     setSnackbar,

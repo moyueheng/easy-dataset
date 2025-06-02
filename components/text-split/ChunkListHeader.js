@@ -84,7 +84,7 @@ export default function ChunkListHeader({
   };
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '30px' }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Checkbox
           checked={selectedChunks.length === totalChunks}

@@ -31,7 +31,7 @@ export default function ProjectPage({ params }) {
         }
       })
       .catch(error => {
-        toast.error('获取模型列表失败');
+        toast.error('get model list error');
       });
   };
 

@@ -11,24 +11,36 @@ export async function POST(request, { params }) {
     // 验证项目ID和文本块ID
     if (!projectId || !chunkId) {
       return NextResponse.json({ error: 'Project ID or text block ID cannot be empty' }, { status: 400 });
-    }
-
-    // 获取请求体
-    const { model, language = '中文', number } = await request.json();
+    } // 获取请求体
+    const { model, language = '中文', number, enableGaExpansion = false } = await request.json();
 
     if (!model) {
       return NextResponse.json({ error: 'Model cannot be empty' }, { status: 400 });
     }
 
+    // 后续会根据是否有GA对来选择是否启用GA扩展选择服务函数
+    const serviceFunc = questionService.generateQuestionsForChunkWithGA;
+
     // 使用问题生成服务
-    const result = await questionService.generateQuestionsForChunk(projectId, chunkId, {
+    const result = await serviceFunc(projectId, chunkId, {
       model,
       language,
-      number
+      number,
+      enableGaExpansion
     });
 
+    // 统一返回格式，确保包含GA扩展信息
+    const response = {
+      chunkId,
+      questions: result.questions || result.labelQuestions || [],
+      total: result.total || (result.questions || result.labelQuestions || []).length,
+      gaExpansionUsed: result.gaExpansionUsed || false,
+      gaPairsCount: result.gaPairsCount || 0,
+      expectedTotal: result.expectedTotal || result.total
+    };
+
     // 返回生成的问题
-    return NextResponse.json(result);
+    return NextResponse.json(response);
   } catch (error) {
     logger.error('Error generating questions:', error);
     return NextResponse.json({ error: error.message || 'Error generating questions' }, { status: 500 });
