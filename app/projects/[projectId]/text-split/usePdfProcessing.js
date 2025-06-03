@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { selectedModelInfoAtom } from '@/lib/store';
 import { useAtomValue } from 'jotai/index';
+import { PrismaClient } from '@prisma/client';
 import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 import axios from 'axios';
@@ -56,32 +57,27 @@ export default function usePdfProcessing(projectId) {
         const availableModels = JSON.parse(localStorage.getItem('modelConfigList'));
         const vsionModel = availableModels.find(m => m.id === selectedViosnModel);
 
-        // 为每个PDF文件创建后台任务
-        for (const file of pdfFiles) {
-          debugger;
-          const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
-            taskType: 'pdf-processing',
-            modelInfo: vsionModel,
-            language: currentLanguage,
-            detail: 'PDF处理任务',
-            note: {
-              // 为节省视觉模型token，pdf处理完成后还是对文本的处理还是使用用户Navbar选中的模型
-              textModel: localStorage.getItem('selectedModelInfo'),  
-              projectId,
-              file: file,
-              strategy: pdfStrategy
-            }
-          });
-
-          if (response.data?.code !== 0) {
-            throw new Error(t('textSplit.pdfProcessingFailed') + (response.data?.error || ''));
+        // 为这一批PDF创建任务
+        const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
+          taskType: 'pdf-processing',
+          modelInfo: vsionModel,
+          language: currentLanguage,
+          detail: 'PDF处理任务',
+          note: {
+            // 为节省视觉模型token，pdf处理完成后还是对文本的处理还是使用用户Navbar选中的模型
+            textModel: localStorage.getItem('selectedModelInfo'),
+            projectId,
+            fileList: pdfFiles,
+            strategy: pdfStrategy
           }
+        });
 
+        if (response.data?.code !== 0) {
+          throw new Error(t('textSplit.pdfProcessingFailed') + (response.data?.error || ''));
         }
 
         //提示后台任务进行中
-        toast.success(t('tasks.createSuccess', { defaultValue: t("textSplit.pdfProcessingToast") }));
-
+        toast.success(t('tasks.createSuccess', { defaultValue: t('textSplit.pdfProcessingToast') }));
       } catch (error) {
         console.error(t('textSplit.pdfProcessingFailed'), error);
         setError && setError({ severity: 'error', message: error.message });

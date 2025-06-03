@@ -75,7 +75,7 @@
     "next-themes": "^0.2.1",
     "ollama-ai-provider": "^1.2.0",
     "opener": "^1.5.2",
-    "pdf2md-js": "^1.0.3",
+    "pdf2md-js": "^1.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^15.4.1",
