@@ -26,7 +26,9 @@ import {
   Download,
   Delete as DeleteIcon,
   FilePresent as FileIcon,
-  Psychology as PsychologyIcon
+  Psychology as PsychologyIcon,
+  CheckBox as SelectAllIcon,
+  CheckBoxOutlineBlank as DeselectAllIcon
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -82,6 +84,42 @@ export default function FileList({
       }
       return newArray;
     });
+  };
+
+  // 全选文件（包括所有页面的文件）
+  const handleSelectAll = async () => {
+    try {
+      // 获取项目中所有文件的ID
+      const response = await fetch(`/api/projects/${projectId}/files?getAllIds=true`);
+      if (!response.ok) {
+        throw new Error('获取文件列表失败');
+      }
+
+      const data = await response.json();
+      const allFileIds = data.allFileIds || [];
+
+      setArray(allFileIds);
+      if (typeof sendToFileUploader === 'function') {
+        sendToFileUploader(allFileIds);
+      }
+    } catch (error) {
+      console.error('全选文件失败:', error);
+      // 如果API调用失败，回退到选择当前页面的文件
+      if (files?.data?.length > 0) {
+        const currentPageFileIds = files.data.map(file => String(file.id));
+        setArray(currentPageFileIds);
+        if (typeof sendToFileUploader === 'function') {
+          sendToFileUploader(currentPageFileIds);
+        }
+      }
+    }
+  };
+  // 取消全选
+  const handleDeselectAll = () => {
+    setArray([]);
+    if (typeof sendToFileUploader === 'function') {
+      sendToFileUploader([]);
+    }
   };
 
   const handleCloseViewDialog = () => {
@@ -345,16 +383,42 @@ export default function FileList({
 
         {/* 批量生成GA对按钮 */}
         {files.total > 0 && (
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            startIcon={<PsychologyIcon />}
-            onClick={openBatchGenDialog}
-            disabled={loading}
-          >
-            {t('gaPairs.batchGenerate')}
-          </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {/* 全选/取消全选按钮 */}
+              {array.length === 0 ? (
+                  <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<DeselectAllIcon />}
+                      onClick={handleSelectAll}
+                      disabled={loading}
+                  >
+                    {t('gaPairs.selectAllFiles')}
+                  </Button>
+              ) : (
+                  <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<SelectAllIcon />}
+                      onClick={handleDeselectAll}
+                      disabled={loading}
+                  >
+                    {t('gaPairs.deselectAllFiles')}
+                  </Button>
+              )}
+
+              {/* 批量生成GA对按钮 */}
+              <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={<PsychologyIcon />}
+                  onClick={openBatchGenDialog}
+                  disabled={loading}
+              >
+                {t('gaPairs.batchGenerate')}
+              </Button>
+            </Box>
         )}
       </Box>
 

@@ -769,6 +769,8 @@
     "fetchModelConfigFailed": "Failed to fetch model config: {{status}}",
     "fetchProjectModelError": "Error fetching project model configuration",
     "batchGenerationFailed": "Batch GA pair generation failed",
-    "batchGenerationSuccess": "Successfully generated GA pairs for {{count}} files"
+    "batchGenerationSuccess": "Successfully generated GA pairs for {{count}} files",
+    "selectAllFiles": "Select All",
+    "deselectAllFiles": "Deselect All"
   }
 }
