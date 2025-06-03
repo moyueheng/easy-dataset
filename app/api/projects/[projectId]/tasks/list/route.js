@@ -92,7 +92,7 @@ export async function POST(request, { params }) {
         language: language || 'zh-CN',
         detail: detail || '',
         totalCount,
-        note: note ? JSON.stringify(note) : "",
+        note: note ? JSON.stringify(note) : '',
         completedCount: 0
       }
     });
