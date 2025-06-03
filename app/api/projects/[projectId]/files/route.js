@@ -28,9 +28,13 @@ export async function GET(request, { params }) {
     if (!projectId) {
       return NextResponse.json({ error: 'The project ID cannot be empty' }, { status: 400 });
     }
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page')) || 1;
+    const pageSize = parseInt(searchParams.get('pageSize')) || 10; // 每页10个文件，支持分页
+    const fileName = searchParams.get('fileName') || '';
 
     // 获取文件列表
-    const files = await getUploadFilesPagination(projectId, 1, 10, '');
+    const files = await getUploadFilesPagination(projectId, page, pageSize, fileName);
 
     return NextResponse.json(files);
   } catch (error) {

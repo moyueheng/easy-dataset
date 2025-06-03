@@ -18,7 +18,8 @@ import {
   DialogContentText,
   DialogActions,
   FormControlLabel,
-  Switch
+  Switch,
+  Pagination
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -42,7 +43,9 @@ export default function FileList({
   onDeleteFile,
   sendToFileUploader,
   projectId,
-  setPageLoading
+  setPageLoading,
+  currentPage = 1,
+  onPageChange
 }) {
   const { t } = useTranslation();
 
@@ -366,6 +369,7 @@ export default function FileList({
           </Typography>
         </Box>
       ) : (
+      <>
         <List sx={{ maxHeight: '200px', overflow: 'auto', width: '100%' }}>
           {files?.data?.map((file, index) => (
             <Box key={index}>
@@ -412,6 +416,21 @@ export default function FileList({
             </Box>
           ))}
         </List>
+
+        {/* 分页控件 */}
+        {files.total > 10 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Pagination
+                  count={Math.ceil(files.total / 10)} // 假设每页10个文件
+                  page={currentPage}
+                  onChange={(event, page) => onPageChange && onPageChange(page)}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+              />
+            </Box>
+        )}
+      </>
       )}
 
       {/* 现有的文本块详情对话框 */}
