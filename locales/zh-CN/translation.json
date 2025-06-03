@@ -769,6 +769,8 @@
     "fetchModelConfigFailed": "获取模型配置失败: {{status}}",
     "fetchProjectModelError": "获取项目模型配置时出错",
     "batchGenerationFailed": "批量生成GA对失败",
-    "batchGenerationSuccess": "成功为 {{count}} 个文件生成GA对"
+    "batchGenerationSuccess": "成功为 {{count}} 个文件生成GA对",
+    "selectAllFiles": "全选",
+    "deselectAllFiles": "取消全选"
   }
 }
