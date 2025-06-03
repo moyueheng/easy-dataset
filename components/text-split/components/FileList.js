@@ -385,17 +385,7 @@ export default function FileList({
         {files.total > 0 && (
             <Box sx={{ display: 'flex', gap: 1 }}>
               {/* 全选/取消全选按钮 */}
-              {array.length === 0 ? (
-                  <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<DeselectAllIcon />}
-                      onClick={handleSelectAll}
-                      disabled={loading}
-                  >
-                    {t('gaPairs.selectAllFiles')}
-                  </Button>
-              ) : (
+              {array.length === files.total ? (
                   <Button
                       variant="outlined"
                       size="small"
@@ -404,6 +394,16 @@ export default function FileList({
                       disabled={loading}
                   >
                     {t('gaPairs.deselectAllFiles')}
+                  </Button>
+              ) : (
+                  <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<DeselectAllIcon />}
+                      onClick={handleSelectAll}
+                      disabled={loading}
+                  >
+                    {t('gaPairs.selectAllFiles')}
                   </Button>
               )}
 
