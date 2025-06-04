@@ -405,7 +405,7 @@ export default function FileUploader({
   };
 
   // 处理分页变化
-  const handlePageChange = (page) => {
+  const handlePageChange = page => {
     setCurrentPage(page);
   };
 
@@ -433,6 +433,7 @@ export default function FileUploader({
             onFileSelect={handleFileSelect}
             onRemoveFile={removeFile}
             onUpload={uploadFiles}
+            selectedModel={selectedModelInfo}
           />
         </Grid>
 
