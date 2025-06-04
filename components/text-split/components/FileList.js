@@ -383,42 +383,42 @@ export default function FileList({
 
         {/* 批量生成GA对按钮 */}
         {files.total > 0 && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {/* 全选/取消全选按钮 */}
-              {array.length === files.total ? (
-                  <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<SelectAllIcon />}
-                      onClick={handleDeselectAll}
-                      disabled={loading}
-                  >
-                    {t('gaPairs.deselectAllFiles')}
-                  </Button>
-              ) : (
-                  <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<DeselectAllIcon />}
-                      onClick={handleSelectAll}
-                      disabled={loading}
-                  >
-                    {t('gaPairs.selectAllFiles')}
-                  </Button>
-              )}
-
-              {/* 批量生成GA对按钮 */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {/* 全选/取消全选按钮 */}
+            {array.length === files.total ? (
               <Button
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  startIcon={<PsychologyIcon />}
-                  onClick={openBatchGenDialog}
-                  disabled={loading}
+                variant="outlined"
+                size="small"
+                startIcon={<SelectAllIcon />}
+                onClick={handleDeselectAll}
+                disabled={loading}
               >
-                {t('gaPairs.batchGenerate')}
+                {t('gaPairs.deselectAllFiles')}
               </Button>
-            </Box>
+            ) : (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DeselectAllIcon />}
+                onClick={handleSelectAll}
+                disabled={loading}
+              >
+                {t('gaPairs.selectAllFiles')}
+              </Button>
+            )}
+
+            {/* 批量生成GA对按钮 */}
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<PsychologyIcon />}
+              onClick={openBatchGenDialog}
+              disabled={loading}
+            >
+              {t('gaPairs.batchGenerate')}
+            </Button>
+          </Box>
         )}
       </Box>
 
@@ -433,68 +433,68 @@ export default function FileList({
           </Typography>
         </Box>
       ) : (
-      <>
-        <List sx={{ maxHeight: '200px', overflow: 'auto', width: '100%' }}>
-          {files?.data?.map((file, index) => (
-            <Box key={index}>
-              <ListItem
-                secondaryAction={
-                  <Box sx={{ display: 'flex' }}>
-                    <Checkbox
-                      sx={{ mr: 1 }}
-                      checked={array.includes(String(file.id))}
-                      onChange={e => handleCheckboxChange(file.id, e.target.checked)}
-                    />
-                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
-                    {/* <Tooltip title={t('textSplit.viewDetails')}>
+        <>
+          <List sx={{ maxHeight: '200px', overflow: 'auto', width: '100%' }}>
+            {files?.data?.map((file, index) => (
+              <Box key={index}>
+                <ListItem
+                  secondaryAction={
+                    <Box sx={{ display: 'flex' }}>
+                      <Checkbox
+                        sx={{ mr: 1 }}
+                        checked={array.includes(String(file.id))}
+                        onChange={e => handleCheckboxChange(file.id, e.target.checked)}
+                      />
+                      <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
+                      {/* <Tooltip title={t('textSplit.viewDetails')}>
                       <IconButton color="primary" onClick={() => handleViewContent(file.id)}>
                         <VisibilityIcon />
                       </IconButton>
                     </Tooltip> */}
-                    <Tooltip title={t('textSplit.download')}>
-                      <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
-                        <Download />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('textSplit.deleteFile')}>
-                      <IconButton color="error" onClick={() => onDeleteFile(file.id, file.fileName)}>
-                        <DeleteIcon />
-                      </IconButton>
+                      <Tooltip title={t('textSplit.download')}>
+                        <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
+                          <Download />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('textSplit.deleteFile')}>
+                        <IconButton color="error" onClick={() => onDeleteFile(file.id, file.fileName)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  }
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <FileIcon color="primary" sx={{ mr: 1 }} />
+                    <Tooltip title={`${file.fileName}（${t('textSplit.viewDetails')}）`}>
+                      <ListItemText
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleViewContent(file.id)}
+                        primary={file.fileName}
+                        secondary={`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
+                      />
                     </Tooltip>
                   </Box>
-                }
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <FileIcon color="primary" sx={{ mr: 1 }} />
-                  <Tooltip title={`${file.fileName}（${t('textSplit.viewDetails')}）`}>
-                    <ListItemText
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleViewContent(file.id)}
-                      primary={file.fileName}
-                      secondary={`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
-                    />
-                  </Tooltip>
-                </Box>
-              </ListItem>
-              {index < files.data.length - 1 && <Divider />}
-            </Box>
-          ))}
-        </List>
+                </ListItem>
+                {index < files.data.length - 1 && <Divider />}
+              </Box>
+            ))}
+          </List>
 
-        {/* 分页控件 */}
-        {files.total > 10 && (
+          {/* 分页控件 */}
+          {files.total > 10 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
               <Pagination
-                  count={Math.ceil(files.total / 10)} // 假设每页10个文件
-                  page={currentPage}
-                  onChange={(event, page) => onPageChange && onPageChange(page)}
-                  color="primary"
-                  showFirstButton
-                  showLastButton
+                count={Math.ceil(files.total / 10)} // 假设每页10个文件
+                page={currentPage}
+                onChange={(event, page) => onPageChange && onPageChange(page)}
+                color="primary"
+                showFirstButton
+                showLastButton
               />
             </Box>
-        )}
-      </>
+          )}
+        </>
       )}
 
       {/* 现有的文本块详情对话框 */}
