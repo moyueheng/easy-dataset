@@ -289,6 +289,8 @@
     "pdfProcessingStrategyVision": "Custom Vision Model",
     "pdfProcessingStrategyVisionHelper": "Use a custom vision model for parsing",
     "pdfProcessingToast": "PDF file detected. The system will create a background task to parse the file",
+    "pdfProcessingWaring": "There is a PDF processing task in progress. It is recommended to wait for the task to complete before performing other operations, otherwise it may affect the quality of data generation!",
+    "pdfProcessingLoading": "Executing PDF conversion task, please wait for the task to complete before uploading new files...",
     "basicPdfParsing": "Basic PDF Parsing",
     "basicPdfParsingDesc": "Capable of identifying the key outlines of simple PDF files with high speed",
     "mineruApiDesc": "Capable of identifying complex PDF files, including formulas and charts (Requires configuration of MinerU API Key)",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Container, Box, Tabs, Tab } from '@mui/material';
+import { Container, Box, Tabs, Tab, Alert, AlertTitle } from '@mui/material';
 import FileUploader from '@/components/text-split/FileUploader';
 import LoadingBackdrop from '@/components/text-split/LoadingBackdrop';
 import MessageAlert from '@/components/common/MessageAlert';
@@ -19,6 +19,7 @@ import useChunks from '@/app/projects/[projectId]/text-split/useChunks';
 import useQuestionGeneration from '@/app/projects/[projectId]/text-split/useQuestionGeneration';
 import usePdfProcessing from '@/app/projects/[projectId]/text-split/usePdfProcessing';
 import useTextSplit from '@/app/projects/[projectId]/text-split/useTextSplit';
+import usePdfProcessingStatus from '@/hooks/usePdfProcessingStatus';
 
 export default function TextSplitPage({ params }) {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ export default function TextSplitPage({ params }) {
   const [questionFilter, setQuestionFilter] = useState('all'); // 'all', 'generated', 'ungenerated'
   const [selectedViosnModel, setSelectedViosnModel] = useState('');
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
+  const { taskPdfProcessing } = usePdfProcessingStatus();
 
   // 使用自定义hooks
   const {
@@ -67,7 +69,7 @@ export default function TextSplitPage({ params }) {
   // 加载文本块数据
   useEffect(() => {
     fetchChunks('all');
-  }, [fetchChunks]);
+  }, [fetchChunks,taskPdfProcessing]);
 
   // 处理标签切换
   const handleTabChange = (event, newValue) => {
@@ -161,7 +163,7 @@ export default function TextSplitPage({ params }) {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 8, position: 'relative' }}>
       {/* 文件上传组件 */}
-      <FileUploader
+        <FileUploader
         projectId={projectId}
         onUploadSuccess={handleUploadSuccess}
         onProcessStart={handleSplitText}
@@ -172,6 +174,7 @@ export default function TextSplitPage({ params }) {
         pdfStrategy={pdfStrategy}
         selectedViosnModel={selectedViosnModel}
         setSelectedViosnModel={setSelectedViosnModel}
+        taskPdfProcessing={taskPdfProcessing}
       >
         <PdfSettings
           pdfStrategy={pdfStrategy}
@@ -181,6 +184,12 @@ export default function TextSplitPage({ params }) {
         />
       </FileUploader>
 
+      {taskPdfProcessing && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <AlertTitle></AlertTitle>
+            {t('textSplit.pdfProcessingWaring')}
+          </Alert>
+        )}
       {/* 标签页 */}
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs

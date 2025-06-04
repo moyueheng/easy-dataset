@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import mammoth from 'mammoth';
-import { Paper, Alert, Snackbar, Grid } from '@mui/material';
+import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
@@ -32,7 +32,8 @@ export default function FileUploader({
   pdfStrategy,
   selectedViosnModel,
   setSelectedViosnModel,
-  setPageLoading
+  setPageLoading,
+  taskPdfProcessing
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -403,73 +404,90 @@ export default function FileUploader({
         borderRadius: 2
       }}
     >
-      <Grid container spacing={3}>
-        {/* 左侧：上传文件区域 */}
-        <Grid item xs={10} md={5} sx={{ maxWidth: '100%', width: '100%' }}>
-          <UploadArea
-            theme={theme}
-            files={files}
-            uploading={uploading}
-            uploadedFiles={uploadedFiles}
-            onFileSelect={handleFileSelect}
-            onRemoveFile={removeFile}
-            onUpload={uploadFiles}
-          />
-        </Grid>
+      {taskPdfProcessing ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '20vh'
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>{t('textSplit.pdfProcessingLoading')}</Typography>
+        </Box>
+      ) : (
+        <>
+          <Grid container spacing={3}>
+            {/* 左侧：上传文件区域 */}
+            <Grid item xs={10} md={5} sx={{ maxWidth: '100%', width: '100%' }}>
+              <UploadArea
+                theme={theme}
+                files={files}
+                uploading={uploading}
+                uploadedFiles={uploadedFiles}
+                onFileSelect={handleFileSelect}
+                onRemoveFile={removeFile}
+                onUpload={uploadFiles}
+              />
+            </Grid>
 
-        {/* 右侧：已上传文件列表 */}
-        <Grid item xs={14} md={7} sx={{ maxWidth: '100%', width: '100%' }}>
-          <FileList
-            theme={theme}
-            files={uploadedFiles}
-            loading={loading}
-            setPageLoading={setPageLoading}
-            sendToFileUploader={handleSelected}
-            onDeleteFile={openDeleteConfirm}
+            {/* 右侧：已上传文件列表 */}
+            <Grid item xs={14} md={7} sx={{ maxWidth: '100%', width: '100%' }}>
+              <FileList
+                theme={theme}
+                files={uploadedFiles}
+                loading={loading}
+                setPageLoading={setPageLoading}
+                sendToFileUploader={handleSelected}
+                onDeleteFile={openDeleteConfirm}
+                projectId={projectId}
+              />
+            </Grid>
+          </Grid>
+
+          <Snackbar open={!!error} autoHideDuration={2000} onClose={handleCloseError}>
+            <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+              {error}
+            </Alert>
+          </Snackbar>
+
+          <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseSuccess}>
+            <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+              {successMessage}
+            </Alert>
+          </Snackbar>
+
+          <DeleteConfirmDialog
+            open={deleteConfirmOpen}
+            fileName={fileToDelete?.fileName}
+            onClose={closeDeleteConfirm}
+            onConfirm={confirmDeleteFile}
+          />
+
+          {/* 领域树操作选择对话框 */}
+          <DomainTreeActionDialog
+            open={domainTreeActionOpen}
+            onClose={() => setDomainTreeActionOpen(false)}
+            onConfirm={handleDomainTreeAction}
+            isFirstUpload={isFirstUpload}
+            action={domainTreeAction}
+          />
+          {/* 检测到pdf的处理框 */}
+          <PdfProcessingDialog
+            open={pdfProcessConfirmOpen}
+            onClose={closePdfProcessConfirm}
+            onRadioChange={handleRadioChange}
+            value={pdfStrategy}
             projectId={projectId}
+            taskSettings={taskSettings}
+            visionModels={visionModels}
+            selectedViosnModel={selectedViosnModel}
+            setSelectedViosnModel={setSelectedViosnModel}
           />
-        </Grid>
-      </Grid>
-
-      <Snackbar open={!!error} autoHideDuration={2000} onClose={handleCloseError}>
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseSuccess}>
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
-
-      <DeleteConfirmDialog
-        open={deleteConfirmOpen}
-        fileName={fileToDelete?.fileName}
-        onClose={closeDeleteConfirm}
-        onConfirm={confirmDeleteFile}
-      />
-
-      {/* 领域树操作选择对话框 */}
-      <DomainTreeActionDialog
-        open={domainTreeActionOpen}
-        onClose={() => setDomainTreeActionOpen(false)}
-        onConfirm={handleDomainTreeAction}
-        isFirstUpload={isFirstUpload}
-        action={domainTreeAction}
-      />
-      {/* 检测到pdf的处理框 */}
-      <PdfProcessingDialog
-        open={pdfProcessConfirmOpen}
-        onClose={closePdfProcessConfirm}
-        onRadioChange={handleRadioChange}
-        value={pdfStrategy}
-        projectId={projectId}
-        taskSettings={taskSettings}
-        visionModels={visionModels}
-        selectedViosnModel={selectedViosnModel}
-        setSelectedViosnModel={setSelectedViosnModel}
-      />
+        </>
+      )}
     </Paper>
   );
 }
