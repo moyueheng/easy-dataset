@@ -517,7 +517,8 @@
     "normalOutput": "Normal Output",
     "streamingOutput": "Streaming Output",
     "clearConversation": "Clear Conversation",
-    "selectModelMax3": "Please select up to 3 models to test"
+    "selectModelMax3": "Please select up to 3 models to test",
+    "reasoningProcess": "Reasoning Chain"
   },
   "chunks": {
     "title": "Text Chunk",

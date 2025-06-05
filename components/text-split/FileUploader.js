@@ -254,7 +254,6 @@ export default function FileUploader({
           );
           const turndownService = new TurndownService();
           fileContent = turndownService.turndown(htmlResult.value);
-          console.log(222, fileContent);
           fileName = file.name.replace('.docx', '.md');
         } else {
           // 对于 md 和 txt 文件，直接读取内容

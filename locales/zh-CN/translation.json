@@ -519,7 +519,8 @@
     "normalOutput": "普通输出",
     "streamingOutput": "流式输出",
     "clearConversation": "清空对话",
-    "selectModelMax3": "选择模型（最多3个）"
+    "selectModelMax3": "选择模型（最多3个）",
+    "reasoningProcess": "推理过程"
   },
   "chunks": {
     "title": "文本块",
