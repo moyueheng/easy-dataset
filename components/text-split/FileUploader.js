@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import mammoth from 'mammoth';
-import { Paper, Alert, Snackbar, Grid } from '@mui/material';
+import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography, LinearProgress, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
@@ -32,7 +32,9 @@ export default function FileUploader({
   pdfStrategy,
   selectedViosnModel,
   setSelectedViosnModel,
-  setPageLoading
+  setPageLoading,
+  taskPdfProcessing,
+  pdfTask
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -411,6 +413,17 @@ export default function FileUploader({
   const handleSelected = array => {
     sendToPages(array);
   };
+
+  //名字太长影响UI显示，截取文件名
+  const handleLongFileName = (filename )=>  {
+    if (filename.length <=13) {
+        return filename;
+    }
+    const front = filename.substring(0, 7);
+    const back = filename.substring(filename.length - 5);
+    return `${front}···${back}`;
+  }
+
   return (
     <Paper
       elevation={0}
@@ -421,76 +434,132 @@ export default function FileUploader({
         borderRadius: 2
       }}
     >
-      <Grid container spacing={3}>
-        {/* 左侧：上传文件区域 */}
-        <Grid item xs={10} md={5} sx={{ maxWidth: '100%', width: '100%' }}>
-          <UploadArea
-            theme={theme}
-            files={files}
-            uploading={uploading}
-            uploadedFiles={uploadedFiles}
-            onFileSelect={handleFileSelect}
-            onRemoveFile={removeFile}
-            onUpload={uploadFiles}
-            selectedModel={selectedModelInfo}
-          />
-        </Grid>
+      {taskPdfProcessing ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '20vh'
+          }}
+        >
+          <CircularProgress />
+          <Typography sx={{ mt: 2 }}>{t('textSplit.pdfProcessingLoading')}</Typography>
+          <Box sx={{ width: '37%', mt: 1, mb: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 0.5
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('textSplit.pdfPageProcessStatus', {
+                  fileName: handleLongFileName(pdfTask.courent.fileName),
+                  total: pdfTask.courent.totalPage,
+                  completed: pdfTask.courent.processedPage
+                })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {parseInt((pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100)}%
+              </Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100} sx={{ height: 8, borderRadius: 4 }} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 0.5
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('textSplit.pdfProcessStatus', {
+                  total: pdfTask.totalFiles,
+                  completed: pdfTask.processedFiles
+                })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {parseInt((pdfTask.processedFiles / pdfTask.totalFiles) * 100)}%
+              </Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={(pdfTask.processedFiles / pdfTask.totalFiles) * 100} sx={{ height: 8, borderRadius: 4 }} />
+          </Box>
+        </Box>
+      ) : (
+        <>
+          <Grid container spacing={3}>
+            {/* 左侧：上传文件区域 */}
+            <Grid item xs={10} md={5} sx={{ maxWidth: '100%', width: '100%' }}>
+              <UploadArea
+                theme={theme}
+                files={files}
+                uploading={uploading}
+                uploadedFiles={uploadedFiles}
+                onFileSelect={handleFileSelect}
+                onRemoveFile={removeFile}
+                onUpload={uploadFiles}
+                selectedModel={selectedModelInfo}
+              />
+            </Grid>
 
-        {/* 右侧：已上传文件列表 */}
-        <Grid item xs={14} md={7} sx={{ maxWidth: '100%', width: '100%' }}>
-          <FileList
-            theme={theme}
-            files={uploadedFiles}
-            loading={loading}
-            setPageLoading={setPageLoading}
-            sendToFileUploader={handleSelected}
-            onDeleteFile={openDeleteConfirm}
+            {/* 右侧：已上传文件列表 */}
+            <Grid item xs={14} md={7} sx={{ maxWidth: '100%', width: '100%' }}>
+              <FileList
+                theme={theme}
+                files={uploadedFiles}
+                loading={loading}
+                setPageLoading={setPageLoading}
+                sendToFileUploader={handleSelected}
+                onDeleteFile={openDeleteConfirm}
+                projectId={projectId}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+              />
+            </Grid>
+          </Grid>
+
+          <Snackbar open={!!error} autoHideDuration={2000} onClose={handleCloseError}>
+            <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+              {error}
+            </Alert>
+          </Snackbar>
+
+          <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseSuccess}>
+            <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+              {successMessage}
+            </Alert>
+          </Snackbar>
+
+          <DeleteConfirmDialog
+            open={deleteConfirmOpen}
+            fileName={fileToDelete?.fileName}
+            onClose={closeDeleteConfirm}
+            onConfirm={confirmDeleteFile}
+          />
+
+          {/* 领域树操作选择对话框 */}
+          <DomainTreeActionDialog
+            open={domainTreeActionOpen}
+            onClose={() => setDomainTreeActionOpen(false)}
+            onConfirm={handleDomainTreeAction}
+            isFirstUpload={isFirstUpload}
+            action={domainTreeAction}
+          />
+          {/* 检测到pdf的处理框 */}
+          <PdfProcessingDialog
+            open={pdfProcessConfirmOpen}
+            onClose={closePdfProcessConfirm}
+            onRadioChange={handleRadioChange}
+            value={pdfStrategy}
             projectId={projectId}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
+            taskSettings={taskSettings}
+            visionModels={visionModels}
+            selectedViosnModel={selectedViosnModel}
+            setSelectedViosnModel={setSelectedViosnModel}
           />
-        </Grid>
-      </Grid>
-
-      <Snackbar open={!!error} autoHideDuration={2000} onClose={handleCloseError}>
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseSuccess}>
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
-
-      <DeleteConfirmDialog
-        open={deleteConfirmOpen}
-        fileName={fileToDelete?.fileName}
-        onClose={closeDeleteConfirm}
-        onConfirm={confirmDeleteFile}
-      />
-
-      {/* 领域树操作选择对话框 */}
-      <DomainTreeActionDialog
-        open={domainTreeActionOpen}
-        onClose={() => setDomainTreeActionOpen(false)}
-        onConfirm={handleDomainTreeAction}
-        isFirstUpload={isFirstUpload}
-        action={domainTreeAction}
-      />
-      {/* 检测到pdf的处理框 */}
-      <PdfProcessingDialog
-        open={pdfProcessConfirmOpen}
-        onClose={closePdfProcessConfirm}
-        onRadioChange={handleRadioChange}
-        value={pdfStrategy}
-        projectId={projectId}
-        taskSettings={taskSettings}
-        visionModels={visionModels}
-        selectedViosnModel={selectedViosnModel}
-        setSelectedViosnModel={setSelectedViosnModel}
-      />
+        </>
+      )}
     </Paper>
   );
 }

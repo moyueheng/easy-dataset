@@ -1,7 +1,8 @@
 // 最佳实践配置示例
 module.exports = {
   experimental: {
-    serverComponentsExternalPackages: ['@opendocsg/pdf2md', 'pdfjs-dist']
+    serverComponentsExternalPackages: ['@opendocsg/pdf2md', '@napi-rs/canvas', 'pdfjs-dist'],
+    esmExternals: 'loose'
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -10,7 +11,8 @@ module.exports = {
         'pdfjs-dist': 'window.pdfjsLib'
       });
     } else {
-      config.externals.push('canvas');
+      config.externals.push('@napi-rs/canvas');
+      config.externals.push('pdfjs-dist');
     }
     return config;
   }

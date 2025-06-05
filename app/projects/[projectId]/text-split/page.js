@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Container, Box, Tabs, Tab } from '@mui/material';
+import { Container, Box, Tabs, Tab, Alert, AlertTitle } from '@mui/material';
 import FileUploader from '@/components/text-split/FileUploader';
 import LoadingBackdrop from '@/components/text-split/LoadingBackdrop';
 import MessageAlert from '@/components/common/MessageAlert';
@@ -19,6 +19,7 @@ import useChunks from '@/app/projects/[projectId]/text-split/useChunks';
 import useQuestionGeneration from '@/app/projects/[projectId]/text-split/useQuestionGeneration';
 import usePdfProcessing from '@/app/projects/[projectId]/text-split/usePdfProcessing';
 import useTextSplit from '@/app/projects/[projectId]/text-split/useTextSplit';
+import usePdfProcessingStatus from '@/hooks/usePdfProcessingStatus';
 
 export default function TextSplitPage({ params }) {
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ export default function TextSplitPage({ params }) {
   const [questionFilter, setQuestionFilter] = useState('all'); // 'all', 'generated', 'ungenerated'
   const [selectedViosnModel, setSelectedViosnModel] = useState('');
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
+  const { taskPdfProcessing, task } = usePdfProcessingStatus();
 
   // 使用自定义hooks
   const {
@@ -67,7 +69,7 @@ export default function TextSplitPage({ params }) {
   // 加载文本块数据
   useEffect(() => {
     fetchChunks('all');
-  }, [fetchChunks]);
+  }, [fetchChunks,taskPdfProcessing]);
 
   // 处理标签切换
   const handleTabChange = (event, newValue) => {
@@ -82,19 +84,32 @@ export default function TextSplitPage({ params }) {
     try {
       // 处理PDF文件
       if (pdfFiles && pdfFiles.length > 0) {
-        await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel, setError);
+        const pdfFilesWithId = [];
+        // pdfFiles 中是 File 类型对象，pdf解析后进行文本分割还需要fileId，这里要特殊处理一下
+        for (const pdfFile of pdfFiles) {
+          //根据名字筛选一下对应的pdf
+          let fileName = fileNames.filter(item => item.fileName === pdfFile.name)[0];
+          //用于pdf处理任务后，构建领域树操作
+          fileName['action'] = domainTreeAction;
+          pdfFilesWithId.push(fileName);
+        }
+        await handlePdfProcessing(pdfFilesWithId, pdfStrategy, selectedViosnModel, setError);
       }
 
-      // 处理文本分割
-      if (fileNames && fileNames.length > 0) {
-        await handleSplitText(fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+      // 处理文本分割 非pdf文件继续走文件
+      const filesWithoutPdf = fileNames.filter(item => !item.fileName.endsWith('.pdf'));
+      if (filesWithoutPdf && filesWithoutPdf.length > 0) {
+        await handleSplitText(filesWithoutPdf, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+        //只有进行了文本分割流程后再reload整个页面
+        location.reload();
       }
     } catch (error) {
       console.error('文件处理错误:', error);
       setError(error.message || '文件处理过程中发生错误');
     } finally {
       // 完成后设置页面加载状态为 false
-      location.reload();
+      //location.reload();
+      setLoading(false);
     }
   };
 
@@ -148,7 +163,7 @@ export default function TextSplitPage({ params }) {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 8, position: 'relative' }}>
       {/* 文件上传组件 */}
-      <FileUploader
+        <FileUploader
         projectId={projectId}
         onUploadSuccess={handleUploadSuccess}
         onProcessStart={handleSplitText}
@@ -159,6 +174,8 @@ export default function TextSplitPage({ params }) {
         pdfStrategy={pdfStrategy}
         selectedViosnModel={selectedViosnModel}
         setSelectedViosnModel={setSelectedViosnModel}
+        taskPdfProcessing={taskPdfProcessing}
+        pdfTask={task}
       >
         <PdfSettings
           pdfStrategy={pdfStrategy}
@@ -168,6 +185,12 @@ export default function TextSplitPage({ params }) {
         />
       </FileUploader>
 
+      {taskPdfProcessing && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <AlertTitle></AlertTitle>
+            {t('textSplit.pdfProcessingWaring')}
+          </Alert>
+        )}
       {/* 标签页 */}
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs
