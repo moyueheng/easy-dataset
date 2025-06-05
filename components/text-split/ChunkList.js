@@ -172,6 +172,7 @@ export default function ChunkList({
               onEdit={handleEditChunk}
               onGenerateQuestions={() => onGenerateQuestions && onGenerateQuestions([chunk.id])}
               projectId={projectId}
+              selectedModel={selectedModel}
             />
           </Grid>
         ))}

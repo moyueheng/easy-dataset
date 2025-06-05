@@ -74,7 +74,8 @@ export default function ChunkCard({
   onDelete,
   onGenerateQuestions,
   onEdit,
-  projectId
+  projectId,
+  selectedModel // 添加selectedModel参数
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -269,17 +270,30 @@ export default function ChunkCard({
             </IconButton>
           </Tooltip>
 
-          <Tooltip title={t('textSplit.generateQuestions')}>
-            <IconButton
-              size="small"
-              color="info"
-              onClick={onGenerateQuestions}
-              sx={{
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(41, 182, 246, 0.08)' : 'rgba(2, 136, 209, 0.08)'
-              }}
-            >
-              <QuizIcon fontSize="small" />
-            </IconButton>
+          <Tooltip
+            title={
+              selectedModel?.id
+                ? t('textSplit.generateQuestions')
+                : t('textSplit.selectModelFirst', { defaultValue: '请先在右上角选择模型' })
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                color="info"
+                onClick={onGenerateQuestions}
+                disabled={!selectedModel?.id}
+                sx={{
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(41, 182, 246, 0.08)' : 'rgba(2, 136, 209, 0.08)',
+                  '&.Mui-disabled': {
+                    opacity: 0.6,
+                    pointerEvents: 'auto' // 允许鼠标悬停显示tooltip
+                  }
+                }}
+              >
+                <QuizIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
 
           <Tooltip title={t('textSplit.editChunk', { chunkId: chunk.name })}>

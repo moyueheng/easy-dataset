@@ -56,6 +56,9 @@ export default function FileUploader({
   const [pendingAction, setPendingAction] = useState(null);
   const [taskSettings, setTaskSettings] = useState(null);
   const [visionModels, setVisionModels] = useState([]);
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10); // 每页显示10个文件
   // 设置PDF文件的处理方式
   const handleRadioChange = event => {
     // 传递这个值的原因是setSelectedViosnModel是异步的,PdfProcessingDialog检测到模型变更设置新的值
@@ -84,13 +87,17 @@ export default function FileUploader({
   // Load uploaded files list
   useEffect(() => {
     fetchUploadedFiles();
-  }, []);
+  }, [currentPage]);
 
   // Fetch uploaded files list
-  const fetchUploadedFiles = async () => {
+  const fetchUploadedFiles = async (page = currentPage, size = pageSize) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/projects/${projectId}/files`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: size.toString()
+      });
+      const response = await fetch(`/api/projects/${projectId}/files?${params}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -249,7 +256,6 @@ export default function FileUploader({
           );
           const turndownService = new TurndownService();
           fileContent = turndownService.turndown(htmlResult.value);
-          console.log(222, fileContent);
           fileName = file.name.replace('.docx', '.md');
         } else {
           // 对于 md 和 txt 文件，直接读取内容
@@ -285,6 +291,8 @@ export default function FileUploader({
       setSuccess(true);
       setFiles([]);
 
+      // 上传成功后回到第一页
+      setCurrentPage(1);
       await fetchUploadedFiles();
 
       // 上传成功后，返回文件名列表和选中的模型信息，并传递领域树操作类型
@@ -371,6 +379,11 @@ export default function FileUploader({
         onFileDeleted(fileToDelete, filesLength);
       }
 
+      // 如果当前页没有文件了，回到第一页
+      if (uploadedFiles.data && uploadedFiles.data.length <= 1 && currentPage > 1) {
+        setCurrentPage(1);
+      }
+
       setSuccessMessage(t('textSplit.deleteSuccess', { fileName: fileToDelete.fileName }));
       setSuccess(true);
     } catch (error) {
@@ -390,6 +403,11 @@ export default function FileUploader({
   // 关闭成功提示
   const handleCloseSuccess = () => {
     setSuccess(false);
+  };
+
+  // 处理分页变化
+  const handlePageChange = page => {
+    setCurrentPage(page);
   };
 
   const handleSelected = array => {
@@ -481,6 +499,7 @@ export default function FileUploader({
                 onFileSelect={handleFileSelect}
                 onRemoveFile={removeFile}
                 onUpload={uploadFiles}
+                selectedModel={selectedModelInfo}
               />
             </Grid>
 
@@ -494,6 +513,8 @@ export default function FileUploader({
                 sendToFileUploader={handleSelected}
                 onDeleteFile={openDeleteConfirm}
                 projectId={projectId}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
               />
             </Grid>
           </Grid>

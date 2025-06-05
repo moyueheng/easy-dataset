@@ -1,12 +1,31 @@
 'use client';
 
-import { Box, Button, Typography, List, ListItem, ListItemText, Divider, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  CircularProgress,
+  Tooltip
+} from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { alpha } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 
-export default function UploadArea({ theme, files, uploading, uploadedFiles, onFileSelect, onRemoveFile, onUpload }) {
+export default function UploadArea({
+  theme,
+  files,
+  uploading,
+  uploadedFiles,
+  onFileSelect,
+  onRemoveFile,
+  onUpload,
+  selectedModel
+}) {
   const { t } = useTranslation();
   return (
     <Box
@@ -31,23 +50,29 @@ export default function UploadArea({ theme, files, uploading, uploadedFiles, onF
         {t('textSplit.uploadNewDocument')}
       </Typography>
 
-      <Button
-        component="label"
-        variant="contained"
-        startIcon={<UploadFileIcon />}
-        sx={{ mb: 2, mt: 2 }}
-        //disabled={uploading || uploadedFiles.length > 0}
+      <Tooltip
+        title={!selectedModel?.id ? t('textSplit.selectModelFirst', { defaultValue: '请先在右上角选择模型' }) : ''}
       >
-        {t('textSplit.selectFile')}
-        <input
-          type="file"
-          hidden
-          accept=".md,.txt,.docx,.pdf"
-          multiple
-          onChange={onFileSelect}
-          // disabled={uploadedFiles.length > 0}
-        />
-      </Button>
+        <span>
+          <Button
+            component="label"
+            variant="contained"
+            startIcon={<UploadFileIcon />}
+            sx={{ mb: 2, mt: 2 }}
+            disabled={!selectedModel?.id || uploading}
+          >
+            {t('textSplit.selectFile')}
+            <input
+              type="file"
+              hidden
+              accept=".md,.txt,.docx,.pdf"
+              multiple
+              onChange={onFileSelect}
+              disabled={!selectedModel?.id || uploading}
+            />
+          </Button>
+        </span>
+      </Tooltip>
 
       <Typography variant="body2" color="textSecondary">
         {uploadedFiles.total > 0 ? t('textSplit.mutilFileMessage') : t('textSplit.supportedFormats')}
@@ -83,9 +108,23 @@ export default function UploadArea({ theme, files, uploading, uploadedFiles, onF
           </List>
 
           <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-            <Button variant="contained" color="primary" onClick={onUpload} disabled={uploading} sx={{ minWidth: 120 }}>
-              {uploading ? <CircularProgress size={24} /> : t('textSplit.uploadAndProcess')}
-            </Button>
+            <Tooltip
+              title={
+                !selectedModel?.id ? t('textSplit.selectModelFirst', { defaultValue: '请先在右上角选择模型' }) : ''
+              }
+            >
+              <span>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={onUpload}
+                  disabled={uploading || !selectedModel?.id}
+                  sx={{ minWidth: 120 }}
+                >
+                  {uploading ? <CircularProgress size={24} /> : t('textSplit.uploadAndProcess')}
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
         </Box>
       )}

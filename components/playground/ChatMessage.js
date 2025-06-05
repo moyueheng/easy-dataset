@@ -1,5 +1,10 @@
-import React from 'react';
-import { Box, Paper, Typography, Alert, useTheme } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Paper, Typography, Alert, useTheme, IconButton, Collapse } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 聊天消息组件
@@ -11,6 +16,7 @@ import { Box, Paper, Typography, Alert, useTheme } from '@mui/material';
  */
 export default function ChatMessage({ message, modelName }) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // 用户消息
   if (message.role === 'user') {
@@ -67,6 +73,10 @@ export default function ChatMessage({ message, modelName }) {
 
   // 助手消息
   if (message.role === 'assistant') {
+    // 处理推理过程的展示状态
+    const [showThinking, setShowThinking] = useState(message.showThinking || false);
+    const hasThinking = message.thinking && message.thinking.trim().length > 0;
+
     return (
       <Box
         sx={{
@@ -81,6 +91,7 @@ export default function ChatMessage({ message, modelName }) {
             p: 2,
             borderRadius: '16px 16px 16px 0',
             maxWidth: '80%',
+            width: hasThinking ? '80%' : 'auto',
             bgcolor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100]
           }}
         >
@@ -89,6 +100,64 @@ export default function ChatMessage({ message, modelName }) {
               {modelName}
             </Typography>
           )}
+
+          {/* 推理过程显示区域 */}
+          {hasThinking && (
+            <Box sx={{ mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                  borderBottom: `1px solid ${theme.palette.divider}`
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {message.isStreaming ? (
+                    <AutoFixHighIcon
+                      fontSize="small"
+                      color="primary"
+                      sx={{
+                        animation: 'thinking-pulse 1.5s infinite',
+                        '@keyframes thinking-pulse': {
+                          '0%': { opacity: 0.4 },
+                          '50%': { opacity: 1 },
+                          '100%': { opacity: 0.4 }
+                        }
+                      }}
+                    />
+                  ) : (
+                    <PsychologyIcon fontSize="small" color="primary" />
+                  )}
+                  <Typography variant="caption" color="primary" fontWeight="bold">
+                    {t('playground.reasoningProcess', '推理过程')}
+                  </Typography>
+                </Box>
+                <IconButton size="small" onClick={() => setShowThinking(!showThinking)} sx={{ p: 0 }}>
+                  {showThinking ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                </IconButton>
+              </Box>
+
+              <Collapse in={showThinking}>
+                <Box
+                  sx={{
+                    p: 1,
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+                    borderRadius: 1,
+                    fontFamily: 'monospace',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: theme.palette.text.secondary }}>
+                    {message.thinking}
+                  </Typography>
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+
+          {/* 回答内容 */}
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
             {typeof message.content === 'string' ? (
               <>
