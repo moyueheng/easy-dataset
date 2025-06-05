@@ -30,7 +30,7 @@ export default function TextSplitPage({ params }) {
   const [questionFilter, setQuestionFilter] = useState('all'); // 'all', 'generated', 'ungenerated'
   const [selectedViosnModel, setSelectedViosnModel] = useState('');
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
-  const { taskPdfProcessing } = usePdfProcessingStatus();
+  const { taskPdfProcessing, task } = usePdfProcessingStatus();
 
   // 使用自定义hooks
   const {
@@ -175,6 +175,7 @@ export default function TextSplitPage({ params }) {
         selectedViosnModel={selectedViosnModel}
         setSelectedViosnModel={setSelectedViosnModel}
         taskPdfProcessing={taskPdfProcessing}
+        pdfTask={task}
       >
         <PdfSettings
           pdfStrategy={pdfStrategy}

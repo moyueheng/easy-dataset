@@ -279,6 +279,7 @@
     "generateQuestions": "Generate Questions",
     "charsCount": "Characters",
     "pdfProcessStatus": "Total {{total}} PDF files, {{completed}} have been converted",
+    "pdfPageProcessStatus": "Processing {{fileName}}, {{completed}} out of {{total}} pages converted",
     "pdfProcessing": "Converting PDF file...",
     "pdfProcessingFailed": "PDF file conversion failed!",
     "pdfProcess": "PDF file detected!",

@@ -15,7 +15,7 @@ export default function TaskIcon({ projectId, theme }) {
   const router = useRouter();
   const [tasks, setTasks] = useState([]);
   const [polling, setPolling] = useState(false);
-  const { setTaskPdfProcessing } = usePdfProcessingStatus();
+  const { setTaskPdfProcessing, setTask } = usePdfProcessingStatus();
 
   // 获取项目的未完成任务列表
   const fetchPendingTasks = async () => {
@@ -29,10 +29,18 @@ export default function TaskIcon({ projectId, theme }) {
         setTasks(tasks);
         // 检查是否有pdf处理任务正在进行
         const hasActivePdfTask = tasks.some(
-          task => task.taskType === 'pdf-processing'
+          task => task.projectId === projectId && task.taskType === 'pdf-processing'
         );
-        console.log('hasActivePdfTask', hasActivePdfTask);
         setTaskPdfProcessing(hasActivePdfTask);
+        //存在pdf处理任务，将任务信息传递给共享状态
+        if(hasActivePdfTask){
+          const activeTask = tasks.find(
+            task => task.projectId === projectId && task.taskType === 'pdf-processing'
+          );
+          // 解析任务详情信息
+          const detailInfo = JSON.parse(activeTask.detail);
+          setTask(detailInfo);
+        }
       }
     } catch (error) {
       console.error('获取任务列表失败:', error);

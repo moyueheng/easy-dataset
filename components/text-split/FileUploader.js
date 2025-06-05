@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import mammoth from 'mammoth';
-import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography } from '@mui/material';
+import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography, LinearProgress, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
@@ -33,7 +33,8 @@ export default function FileUploader({
   selectedViosnModel,
   setSelectedViosnModel,
   setPageLoading,
-  taskPdfProcessing
+  taskPdfProcessing,
+  pdfTask
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -394,6 +395,17 @@ export default function FileUploader({
   const handleSelected = array => {
     sendToPages(array);
   };
+
+  //名字太长影响UI显示，截取文件名
+  const handleLongFileName = (filename )=>  {
+    if (filename.length <=13) {
+        return filename;
+    }
+    const front = filename.substring(0, 7);
+    const back = filename.substring(filename.length - 5);
+    return `${front}···${back}`;
+  }
+
   return (
     <Paper
       elevation={0}
@@ -416,6 +428,45 @@ export default function FileUploader({
         >
           <CircularProgress />
           <Typography sx={{ mt: 2 }}>{t('textSplit.pdfProcessingLoading')}</Typography>
+          <Box sx={{ width: '37%', mt: 1, mb: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 0.5
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('textSplit.pdfPageProcessStatus', {
+                  fileName: handleLongFileName(pdfTask.courent.fileName),
+                  total: pdfTask.courent.totalPage,
+                  completed: pdfTask.courent.processedPage
+                })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {parseInt((pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100)}%
+              </Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100} sx={{ height: 8, borderRadius: 4 }} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mb: 0.5
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('textSplit.pdfProcessStatus', {
+                  total: pdfTask.totalFiles,
+                  completed: pdfTask.processedFiles
+                })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {parseInt((pdfTask.processedFiles / pdfTask.totalFiles) * 100)}%
+              </Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={(pdfTask.processedFiles / pdfTask.totalFiles) * 100} sx={{ height: 8, borderRadius: 4 }} />
+          </Box>
         </Box>
       ) : (
         <>

@@ -282,6 +282,7 @@
     "charsCount": "字符",
     "pdfProcess": "[beta]检测到PDF文件，请选择 PDF 文件处理方式！",
     "pdfProcessStatus": "共{{total}}个PDF文件，{{completed}}个已完成转换",
+    "pdfPageProcessStatus": "正在处理 {{fileName}} 共{{total}}页，{{completed}}页已完成转换",
     "pdfProcessing": "正在转换PDF文件...",
     "pdfProcessingFailed": "PDF文件转换失败！",
     "selectPdfProcessingStrategy": "请选择PDF文件处理方式：",
