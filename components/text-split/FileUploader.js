@@ -415,14 +415,14 @@ export default function FileUploader({
   };
 
   //名字太长影响UI显示，截取文件名
-  const handleLongFileName = (filename )=>  {
-    if (filename.length <=13) {
-        return filename;
+  const handleLongFileName = filename => {
+    if (filename.length <= 13) {
+      return filename;
     }
     const front = filename.substring(0, 7);
     const back = filename.substring(filename.length - 5);
     return `${front}···${back}`;
-  }
+  };
 
   return (
     <Paper
@@ -465,7 +465,11 @@ export default function FileUploader({
                 {parseInt((pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100)}%
               </Typography>
             </Box>
-            <LinearProgress variant="determinate" value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100} sx={{ height: 8, borderRadius: 4 }} />
+            <LinearProgress
+              variant="determinate"
+              value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100}
+              sx={{ height: 8, borderRadius: 4 }}
+            />
             <Box
               sx={{
                 display: 'flex',
@@ -483,7 +487,11 @@ export default function FileUploader({
                 {parseInt((pdfTask.processedFiles / pdfTask.totalFiles) * 100)}%
               </Typography>
             </Box>
-            <LinearProgress variant="determinate" value={(pdfTask.processedFiles / pdfTask.totalFiles) * 100} sx={{ height: 8, borderRadius: 4 }} />
+            <LinearProgress
+              variant="determinate"
+              value={(pdfTask.processedFiles / pdfTask.totalFiles) * 100}
+              sx={{ height: 8, borderRadius: 4 }}
+            />
           </Box>
         </Box>
       ) : (
