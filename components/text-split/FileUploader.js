@@ -25,7 +25,6 @@ import TurndownService from 'turndown';
 export default function FileUploader({
   projectId,
   onUploadSuccess,
-  onProcessStart,
   onFileDeleted,
   sendToPages,
   setPdfStrategy,

@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import {
-  getGaPairsByFileId,
-  updateGaPair,
-  toggleGaPairActive,
-  batchUpdateGaPairs,
-  saveGaPairs,
-  hasGaPairs,
-  deleteGaPairsByFileId,
-  createGaPairs
-} from '@/lib/db/ga-pairs';
+import { getGaPairsByFileId, toggleGaPairActive, saveGaPairs, createGaPairs } from '@/lib/db/ga-pairs';
 import { getUploadFileInfoById } from '@/lib/db/upload-files';
-import { generateGaPairs } from '@/lib/services/ga-generation';
+import { generateGaPairs } from '@/lib/services/ga/ga-generation';
 import logger from '@/lib/util/logger';
 import { db } from '@/lib/db/index';
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { batchGenerateGaPairs } from '@/lib/services/ga-pairs';
+import { batchGenerateGaPairs } from '@/lib/services/ga/ga-pairs';
 import { getUploadFileInfoById } from '@/lib/db/upload-files'; // 导入单个文件查询函数
 
 /**
