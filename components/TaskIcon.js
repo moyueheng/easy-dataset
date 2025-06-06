@@ -28,15 +28,11 @@ export default function TaskIcon({ projectId, theme }) {
         const tasks = response.data.data || [];
         setTasks(tasks);
         // 检查是否有pdf处理任务正在进行
-        const hasActivePdfTask = tasks.some(
-          task => task.projectId === projectId && task.taskType === 'pdf-processing'
-        );
+        const hasActivePdfTask = tasks.some(task => task.projectId === projectId && task.taskType === 'pdf-processing');
         setTaskPdfProcessing(hasActivePdfTask);
         //存在pdf处理任务，将任务信息传递给共享状态
-        if(hasActivePdfTask){
-          const activeTask = tasks.find(
-            task => task.projectId === projectId && task.taskType === 'pdf-processing'
-          );
+        if (hasActivePdfTask) {
+          const activeTask = tasks.find(task => task.projectId === projectId && task.taskType === 'pdf-processing');
           // 解析任务详情信息
           const detailInfo = JSON.parse(activeTask.detail);
           setTask(detailInfo);

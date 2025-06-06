@@ -69,7 +69,7 @@ export default function TextSplitPage({ params }) {
   // 加载文本块数据
   useEffect(() => {
     fetchChunks('all');
-  }, [fetchChunks,taskPdfProcessing]);
+  }, [fetchChunks, taskPdfProcessing]);
 
   // 处理标签切换
   const handleTabChange = (event, newValue) => {
@@ -163,7 +163,7 @@ export default function TextSplitPage({ params }) {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 8, position: 'relative' }}>
       {/* 文件上传组件 */}
-        <FileUploader
+      <FileUploader
         projectId={projectId}
         onUploadSuccess={handleUploadSuccess}
         onProcessStart={handleSplitText}
@@ -186,11 +186,11 @@ export default function TextSplitPage({ params }) {
       </FileUploader>
 
       {taskPdfProcessing && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <AlertTitle></AlertTitle>
-            {t('textSplit.pdfProcessingWaring')}
-          </Alert>
-        )}
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <AlertTitle></AlertTitle>
+          {t('textSplit.pdfProcessingWaring')}
+        </Alert>
+      )}
       {/* 标签页 */}
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs

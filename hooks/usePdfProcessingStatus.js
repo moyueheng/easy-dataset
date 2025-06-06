@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 // 存储PDF处理状态的共享对象
 const pdfProcessingSubscribers = {
   value: false,
-  listeners: new Set(),
+  listeners: new Set()
 };
 
 // 存储PDF任务信息的共享对象
 const pdfTaskSubscribers = {
   value: null,
-  listeners: new Set(),
+  listeners: new Set()
 };
 
 /**
@@ -22,9 +22,9 @@ export default function usePdfProcessingStatus() {
 
   useEffect(() => {
     // 添加当前组件为订阅者
-    const updateProcessingState = (newValue) => setTaskPdfProcessing(newValue);
-    const updateTaskState = (newTask) => setTask(newTask);
-    
+    const updateProcessingState = newValue => setTaskPdfProcessing(newValue);
+    const updateTaskState = newTask => setTask(newTask);
+
     pdfProcessingSubscribers.listeners.add(updateProcessingState);
     pdfTaskSubscribers.listeners.add(updateTaskState);
 
@@ -36,14 +36,14 @@ export default function usePdfProcessingStatus() {
   }, []);
 
   // 共享的setState函数
-  const setSharedPdfProcessing = (newValue) => {
+  const setSharedPdfProcessing = newValue => {
     pdfProcessingSubscribers.value = newValue;
     // 通知所有订阅者
     pdfProcessingSubscribers.listeners.forEach(listener => listener(newValue));
   };
 
   // 共享的setTask函数
-  const setSharedTask = (newTask) => {
+  const setSharedTask = newTask => {
     pdfTaskSubscribers.value = newTask;
     // 通知所有订阅者
     pdfTaskSubscribers.listeners.forEach(listener => listener(newTask));
