@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import mammoth from 'mammoth';
-import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography, LinearProgress, Stack } from '@mui/material';
+import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography, LinearProgress } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
@@ -12,16 +11,9 @@ import FileList from './components/FileList';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import PdfProcessingDialog from './components/PdfProcessingDialog';
 import DomainTreeActionDialog from './components/DomainTreeActionDialog';
-import i18n from '@/lib/i18n';
-import TurndownService from 'turndown';
+import { fileApi } from '@/lib/api';
+import { getContent } from '@/lib/file/file-process';
 
-/**
- * File uploader component
- * @param {Object} props
- * @param {string} props.projectId - Project ID
- * @param {Function} props.onUploadSuccess - Upload success callback
- * @param {Function} props.onProcessStart - Process start callback
- */
 export default function FileUploader({
   projectId,
   onUploadSuccess,
@@ -55,15 +47,11 @@ export default function FileUploader({
   const [pendingAction, setPendingAction] = useState(null);
   const [taskSettings, setTaskSettings] = useState(null);
   const [visionModels, setVisionModels] = useState([]);
-  // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10); // 每页显示10个文件
-  // 设置PDF文件的处理方式
-  const handleRadioChange = event => {
-    // 传递这个值的原因是setSelectedViosnModel是异步的,PdfProcessingDialog检测到模型变更设置新的值
-    // 这里没法及时获取到，会导致提示选中的模型仍然是旧模型
-    const modelId = event.target.selectedVision;
+  const [pageSize] = useState(10);
 
+  const handleRadioChange = event => {
+    const modelId = event.target.selectedVision;
     setPdfStrategy(event.target.value);
 
     if (event.target.value === 'mineru') {
@@ -231,58 +219,9 @@ export default function FileUploader({
 
     try {
       const uploadedFileInfos = [];
-
       for (const file of files) {
-        let fileContent;
-        let fileName = file.name;
-
-        // 如果是 docx 文件，先转换为 markdown
-        if (file.name.endsWith('.docx')) {
-          const arrayBuffer = await file.arrayBuffer();
-          const htmlResult = await mammoth.convertToHtml(
-            { arrayBuffer },
-            {
-              convertImage: image => {
-                return mammoth.docx.paragraph({
-                  children: [
-                    mammoth.docx.textRun({
-                      text: ''
-                    })
-                  ]
-                });
-              }
-            }
-          );
-          const turndownService = new TurndownService();
-          fileContent = turndownService.turndown(htmlResult.value);
-          fileName = file.name.replace('.docx', '.md');
-        } else {
-          // 对于 md 和 txt 文件，直接读取内容
-          const reader = new FileReader();
-          fileContent = await new Promise((resolve, reject) => {
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsArrayBuffer(file);
-          });
-          fileName = file.name.replace('.txt', '.md');
-        }
-
-        // // 使用自定义请求头发送文件
-        const response = await fetch(`/api/projects/${projectId}/files`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/octet-stream',
-            'x-file-name': encodeURIComponent(fileName)
-          },
-          body: file.name.endsWith('.docx') ? new TextEncoder().encode(fileContent) : fileContent
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(t('textSplit.uploadFailed') + errorData.error);
-        }
-
-        const data = await response.json();
+        const { fileContent, fileName } = await getContent(file);
+        const data = await fileApi.uploadFile({ file, projectId, fileContent, fileName, t });
         uploadedFileInfos.push({ fileName: data.fileName, fileId: data.fileId });
       }
 
@@ -290,11 +229,8 @@ export default function FileUploader({
       setSuccess(true);
       setFiles([]);
 
-      // 上传成功后回到第一页
       setCurrentPage(1);
       await fetchUploadedFiles();
-
-      // 上传成功后，返回文件名列表和选中的模型信息，并传递领域树操作类型
       if (onUploadSuccess) {
         await onUploadSuccess(uploadedFileInfos, pdfFiles, domainTreeActionType);
       }
@@ -346,33 +282,15 @@ export default function FileUploader({
       setLoading(true);
       closeDeleteConfirm();
 
-      // 使用 Jotai 状态管理获取模型信息
-      const modelInfo = selectedModelInfo || {};
-
-      const response = await fetch(
-        `/api/projects/${projectId}/files?fileId=${fileToDelete.fileId}&domainTreeAction=${domainTreeActionType || 'keep'}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          // 在 DELETE 请求中也传递模型信息和语言环境
-          body: JSON.stringify({
-            model: modelInfo,
-            language: i18n.language === 'zh-CN' ? '中文' : 'en'
-          })
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t('textSplit.deleteFailed'));
-      }
-
-      // 刷新文件列表
+      await fileApi.deleteFile({
+        fileToDelete,
+        projectId,
+        domainTreeActionType,
+        modelInfo: selectedModelInfo || {},
+        t
+      });
       await fetchUploadedFiles();
 
-      // 通知父组件文件已删除，需要刷新文本块列表
       if (onFileDeleted) {
         const filesLength = uploadedFiles.total;
         onFileDeleted(fileToDelete, filesLength);
