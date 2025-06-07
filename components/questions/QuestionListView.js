@@ -179,7 +179,7 @@ export default function QuestionListView({
                 </Box>
 
                 <Box sx={{ width: 120, display: 'flex', justifyContent: 'center' }}>
-                  <Tooltip title={t('questions.edit')}>
+                  <Tooltip title={t('common.edit')}>
                     <IconButton
                       size="small"
                       color="primary"

@@ -90,7 +90,10 @@ export default function useQuestionGeneration(projectId, taskSettings) {
           toast.success(
             t('textSplit.questionsGeneratedSuccess', {
               total: data.total
-            })
+            }),
+            {
+              duration: 3000
+            }
           );
         } else {
           // 如果是多个文本块，循环调用单个文本块的问题生成接口
