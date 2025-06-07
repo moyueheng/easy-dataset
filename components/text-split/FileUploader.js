@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Paper, Alert, Snackbar, Grid, Box, CircularProgress, Typography, LinearProgress } from '@mui/material';
+import { Paper, Grid } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
@@ -11,8 +11,10 @@ import FileList from './components/FileList';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import PdfProcessingDialog from './components/PdfProcessingDialog';
 import DomainTreeActionDialog from './components/DomainTreeActionDialog';
+import PdfLoadingProgress from './components/PdfLoadingProgress';
 import { fileApi, taskApi } from '@/lib/api';
 import { getContent, checkMaxSize, checkInvalidFiles, getvalidFiles } from '@/lib/file/file-process';
+import { toast } from 'sonner';
 
 export default function FileUploader({
   projectId,
@@ -35,9 +37,6 @@ export default function FileUploader({
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pdfProcessConfirmOpen, setpdfProcessConfirmOpen] = useState(false);
   const [fileToDelete, setFileToDelete] = useState({});
@@ -62,20 +61,18 @@ export default function FileUploader({
     setPdfStrategy(event.target.value);
 
     if (event.target.value === 'mineru') {
-      setSuccessMessage(t('textSplit.mineruSelected'));
+      toast.success(t('textSplit.mineruSelected'));
     } else if (event.target.value === 'vision') {
       const model = visionModels.find(item => item.id === modelId);
-      setSuccessMessage(
+      toast.success(
         t('textSplit.customVisionModelSelected', {
           name: model.modelName,
           provider: model.projectName
         })
       );
     } else {
-      setSuccessMessage(t('textSplit.defaultSelected'));
+      toast.success(t('textSplit.defaultSelected'));
     }
-
-    setSuccess(true);
   };
 
   /**
@@ -107,7 +104,7 @@ export default function FileUploader({
 
       setVisionModels(visionItems);
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -185,8 +182,6 @@ export default function FileUploader({
    */
   const handleStartUpload = async domainTreeActionType => {
     setUploading(true);
-    setError(null);
-
     try {
       const uploadedFileInfos = [];
       for (const file of files) {
@@ -194,8 +189,7 @@ export default function FileUploader({
         const data = await fileApi.uploadFile({ file, projectId, fileContent, fileName, t });
         uploadedFileInfos.push({ fileName: data.fileName, fileId: data.fileId });
       }
-      setSuccessMessage(t('textSplit.uploadSuccess', { count: files.length }));
-      setSuccess(true);
+      toast.success(t('textSplit.uploadSuccess', { count: files.length }));
       setFiles([]);
       setCurrentPage(1);
       await fetchUploadedFiles();
@@ -203,7 +197,7 @@ export default function FileUploader({
         await onUploadSuccess(uploadedFileInfos, pdfFiles, domainTreeActionType);
       }
     } catch (err) {
-      setError(err.message || t('textSplit.uploadFailed'));
+      toast.error(err.message || t('textSplit.uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -237,11 +231,6 @@ export default function FileUploader({
     setDomainTreeActionOpen(true);
   };
 
-  // 关闭PDF处理框
-  const closePdfProcessConfirm = () => {
-    setpdfProcessConfirmOpen(false);
-  };
-
   // 处理删除文件
   const handleDeleteFile = async domainTreeActionType => {
     if (!fileToDelete) return;
@@ -264,49 +253,18 @@ export default function FileUploader({
         onFileDeleted(fileToDelete, filesLength);
       }
 
-      // 如果当前页没有文件了，回到第一页
       if (uploadedFiles.data && uploadedFiles.data.length <= 1 && currentPage > 1) {
         setCurrentPage(1);
       }
 
-      setSuccessMessage(t('textSplit.deleteSuccess', { fileName: fileToDelete.fileName }));
-      setSuccess(true);
+      toast.success(t('textSplit.deleteSuccess', { fileName: fileToDelete.fileName }));
     } catch (error) {
       console.error('删除文件出错:', error);
-      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
       setFileToDelete(null);
     }
-  };
-
-  // 关闭错误提示
-  const handleCloseError = () => {
-    setError(null);
-  };
-
-  // 关闭成功提示
-  const handleCloseSuccess = () => {
-    setSuccess(false);
-  };
-
-  // 处理分页变化
-  const handlePageChange = page => {
-    setCurrentPage(page);
-  };
-
-  const handleSelected = array => {
-    sendToPages(array);
-  };
-
-  //名字太长影响UI显示，截取文件名
-  const handleLongFileName = filename => {
-    if (filename.length <= 13) {
-      return filename;
-    }
-    const front = filename.substring(0, 7);
-    const back = filename.substring(filename.length - 5);
-    return `${front}···${back}`;
   };
 
   return (
@@ -320,65 +278,7 @@ export default function FileUploader({
       }}
     >
       {taskPdfProcessing ? (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '20vh'
-          }}
-        >
-          <CircularProgress />
-          <Typography sx={{ mt: 2 }}>{t('textSplit.pdfProcessingLoading')}</Typography>
-          <Box sx={{ width: '37%', mt: 1, mb: 2 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mb: 0.5
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                {t('textSplit.pdfPageProcessStatus', {
-                  fileName: handleLongFileName(pdfTask.courent.fileName),
-                  total: pdfTask.courent.totalPage,
-                  completed: pdfTask.courent.processedPage
-                })}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {parseInt((pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100)}%
-              </Typography>
-            </Box>
-            <LinearProgress
-              variant="determinate"
-              value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mb: 0.5
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                {t('textSplit.pdfProcessStatus', {
-                  total: pdfTask.totalFiles,
-                  completed: pdfTask.processedFiles
-                })}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {parseInt((pdfTask.processedFiles / pdfTask.totalFiles) * 100)}%
-              </Typography>
-            </Box>
-            <LinearProgress
-              variant="determinate"
-              value={(pdfTask.processedFiles / pdfTask.totalFiles) * 100}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-          </Box>
-        </Box>
+        <PdfLoadingProgress pdfTask={pdfTask} />
       ) : (
         <>
           <Grid container spacing={3}>
@@ -403,26 +303,14 @@ export default function FileUploader({
                 files={uploadedFiles}
                 loading={loading}
                 setPageLoading={setPageLoading}
-                sendToFileUploader={handleSelected}
+                sendToFileUploader={array => sendToPages(array)}
                 onDeleteFile={openDeleteConfirm}
                 projectId={projectId}
                 currentPage={currentPage}
-                onPageChange={handlePageChange}
+                onPageChange={page => setCurrentPage(page)}
               />
             </Grid>
           </Grid>
-
-          <Snackbar open={!!error} autoHideDuration={2000} onClose={handleCloseError}>
-            <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-              {error}
-            </Alert>
-          </Snackbar>
-
-          <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseSuccess}>
-            <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
-              {successMessage}
-            </Alert>
-          </Snackbar>
 
           <DeleteConfirmDialog
             open={deleteConfirmOpen}
@@ -442,7 +330,7 @@ export default function FileUploader({
           {/* 检测到pdf的处理框 */}
           <PdfProcessingDialog
             open={pdfProcessConfirmOpen}
-            onClose={closePdfProcessConfirm}
+            onClose={() => setpdfProcessConfirmOpen(false)}
             onRadioChange={handleRadioChange}
             value={pdfStrategy}
             projectId={projectId}
