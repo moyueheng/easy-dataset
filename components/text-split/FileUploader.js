@@ -11,7 +11,7 @@ import FileList from './components/FileList';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import PdfProcessingDialog from './components/PdfProcessingDialog';
 import DomainTreeActionDialog from './components/DomainTreeActionDialog';
-import PdfLoadingProgress from './components/PdfLoadingProgress';
+import FileLoadingProgress from './components/FileLoadingProgress';
 import { fileApi, taskApi } from '@/lib/api';
 import { getContent, checkMaxSize, checkInvalidFiles, getvalidFiles } from '@/lib/file/file-process';
 import { toast } from 'sonner';
@@ -26,8 +26,8 @@ export default function FileUploader({
   selectedViosnModel,
   setSelectedViosnModel,
   setPageLoading,
-  taskPdfProcessing,
-  pdfTask
+  taskFileProcessing,
+  fileTask
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -277,8 +277,8 @@ export default function FileUploader({
         borderRadius: 2
       }}
     >
-      {taskPdfProcessing ? (
-        <PdfLoadingProgress pdfTask={pdfTask} />
+      {taskFileProcessing ? (
+        <FileLoadingProgress fileTask={fileTask} />
       ) : (
         <>
           <Grid container spacing={3}>

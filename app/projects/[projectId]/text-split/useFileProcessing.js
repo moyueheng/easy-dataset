@@ -9,13 +9,13 @@ import i18n from '@/lib/i18n';
 import axios from 'axios';
 
 /**
- * PDF处理的自定义Hook
+ * 文件处理的自定义Hook
  * @param {string} projectId - 项目ID
- * @returns {Object} - PDF处理状态和操作方法
+ * @returns {Object} - 文件处理状态和操作方法
  */
-export default function usePdfProcessing(projectId) {
+export default function useFileProcessing(projectId) {
   const { t } = useTranslation();
-  const [pdfProcessing, setPdfProcessing] = useState(false);
+  const [fileProcessing, setFileProcessing] = useState(false);
   const [progress, setProgress] = useState({
     total: 0,
     completed: 0,
@@ -39,13 +39,13 @@ export default function usePdfProcessing(projectId) {
   }, []);
 
   /**
-   * 处理PDF文件
-   * @param {Array} pdfFiles - PDF文件列表
+   * 处理文件
+   * @param {Array} files - 文件列表
    * @param {string} pdfStrategy - PDF处理策略
    * @param {string} selectedViosnModel - 选定的视觉模型
    */
-  const handlePdfProcessing = useCallback(
-    async (pdfFiles, pdfStrategy, selectedViosnModel) => {
+  const handleFileProcessing = useCallback(
+    async (files, pdfStrategy, selectedViosnModel, domainTreeAction) => {
       try {
         const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
 
@@ -53,18 +53,17 @@ export default function usePdfProcessing(projectId) {
         const availableModels = JSON.parse(localStorage.getItem('modelConfigList'));
         const vsionModel = availableModels.find(m => m.id === selectedViosnModel);
 
-        // 为这一批PDF创建任务
         const response = await axios.post(`/api/projects/${projectId}/tasks`, {
-          taskType: 'pdf-processing',
-          modelInfo: vsionModel,
+          taskType: 'file-processing',
+          modelInfo: localStorage.getItem('selectedModelInfo'),
           language: currentLanguage,
-          detail: 'PDF处理任务',
+          detail: '文件处理任务',
           note: {
-            // 为节省视觉模型token，pdf处理完成后还是对文本的处理还是使用用户Navbar选中的模型
-            textModel: localStorage.getItem('selectedModelInfo'),
+            vsionModel,
             projectId,
-            fileList: pdfFiles,
-            strategy: pdfStrategy
+            fileList: files,
+            strategy: pdfStrategy,
+            domainTreeAction
           }
         });
 
@@ -82,11 +81,11 @@ export default function usePdfProcessing(projectId) {
   );
 
   return {
-    pdfProcessing,
+    fileProcessing,
     progress,
-    setPdfProcessing,
+    setFileProcessing,
     setProgress,
-    handlePdfProcessing,
+    handleFileProcessing,
     resetProgress
   };
 }
