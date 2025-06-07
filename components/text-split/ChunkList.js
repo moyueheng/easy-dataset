@@ -8,6 +8,7 @@ import ChunkViewDialog from './ChunkViewDialog';
 import ChunkDeleteDialog from './ChunkDeleteDialog';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
+import { chunkApi } from '@/lib/api';
 
 /**
  * Chunk list component
@@ -40,7 +41,6 @@ export default function ChunkList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chunkToDelete, setChunkToDelete] = useState(null);
 
-  // 对文本块进行排序，先按文件ID排序，再按part-后面的数字排序
   const sortedChunks = [...chunks].sort((a, b) => {
     // 先按fileId排序
     if (a.fileId !== b.fileId) {
@@ -71,18 +71,9 @@ export default function ChunkList({
   };
 
   const handleViewChunk = async chunkId => {
-    try {
-      const response = await fetch(`/api/projects/${projectId}/chunks/${chunkId}`);
-      if (!response.ok) {
-        throw new Error(t('textSplit.fetchChunksFailed'));
-      }
-
-      const data = await response.json();
-      setViewChunk(data);
-      setViewDialogOpen(true);
-    } catch (error) {
-      console.error(t('textSplit.fetchChunksError'), error);
-    }
+    const data = await chunkApi.getChunkById(projectId, chunkId);
+    setViewChunk(data);
+    setViewDialogOpen(true);
   };
 
   const handleCloseViewDialog = () => {

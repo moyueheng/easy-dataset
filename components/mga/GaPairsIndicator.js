@@ -14,7 +14,7 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
-import { Psychology as PsychologyIcon, Add as AddIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { Psychology as PsychologyIcon, AutoAwesome as AutoFixIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import GaPairsManager from './GaPairsManager';
 
@@ -129,7 +129,7 @@ export default function GaPairsIndicator({ projectId, fileId, fileName = '未命
       ) : (
         <Tooltip title="Generate GA Pairs">
           <IconButton size="small" onClick={handleOpenDialog} color="primary">
-            <AddIcon fontSize="small" />
+            <AutoFixIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       )}

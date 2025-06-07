@@ -50,9 +50,7 @@ export default function QuestionsPage({ params }) {
   const { t } = useTranslation();
   const theme = useTheme();
   const { projectId } = params;
-
   const [loading, setLoading] = useState(true);
-  // 问题数据
   const [questions, setQuestions] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
