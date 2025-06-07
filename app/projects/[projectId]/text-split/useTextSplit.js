@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/lib/i18n';
+import { toast } from 'sonner';
 
 /**
  * 文本分割的自定义Hook
@@ -20,12 +21,11 @@ export default function useTextSplit(projectId, addChunks, updateTocData, fetchC
    * 处理文本分割
    * @param {Array} fileNames - 文件名列表
    * @param {Object} selectedModelInfo - 选定的模型信息
-   * @param {Function} setError - 设置错误信息的函数
    * @param {Function} setActiveTab - 设置活动标签的函数
    * @param {string} domainTreeAction - 领域树动作
    */
   const handleSplitText = useCallback(
-    async (fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction = 'rebuild') => {
+    async (fileNames, selectedModelInfo, setActiveTab, domainTreeAction = 'rebuild') => {
       try {
         setProcessing(true);
         const language = i18n.language === 'zh-CN' ? '中文' : 'en';
@@ -64,10 +64,7 @@ export default function useTextSplit(projectId, addChunks, updateTocData, fetchC
           fetchChunks();
         }
       } catch (error) {
-        console.error(t('textSplit.splitTextError'), error);
-        if (setError) {
-          setError({ severity: 'error', message: error.message });
-        }
+        toast.error(t('textSplit.splitTextError') + error.message);
       } finally {
         setProcessing(false);
       }
@@ -80,7 +77,6 @@ export default function useTextSplit(projectId, addChunks, updateTocData, fetchC
    * @param {Array} fileNames - 文件名列表
    * @param {Array} pdfFiles - PDF文件列表
    * @param {Function} handlePdfProcessing - 处理PDF文件的函数
-   * @param {Function} setError - 设置错误信息的函数
    * @param {Function} setActiveTab - 设置活动标签的函数
    * @param {string} pdfStrategy - PDF处理策略
    * @param {string} selectedViosnModel - 选定的视觉模型
@@ -92,22 +88,19 @@ export default function useTextSplit(projectId, addChunks, updateTocData, fetchC
       pdfFiles,
       handlePdfProcessing,
       selectedModelInfo,
-      setError,
       setActiveTab,
       pdfStrategy,
       selectedViosnModel,
       domainTreeAction
     ) => {
-      console.log(t('textSplit.fileUploadSuccess'), fileNames);
-
       // 处理PDF文件
       if (pdfFiles && pdfFiles.length > 0 && typeof handlePdfProcessing === 'function') {
-        await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel, setError);
+        await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel);
       }
 
       // 如果有文件上传成功，自动处理
       if (fileNames && fileNames.length > 0) {
-        await handleSplitText(fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+        await handleSplitText(fileNames, selectedModelInfo, setActiveTab, domainTreeAction);
       }
     },
     [t, handleSplitText]

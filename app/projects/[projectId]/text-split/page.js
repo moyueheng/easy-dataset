@@ -1,25 +1,23 @@
 'use client';
 
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Container, Box, Tabs, Tab, Alert, AlertTitle } from '@mui/material';
 import FileUploader from '@/components/text-split/FileUploader';
 import LoadingBackdrop from '@/components/text-split/LoadingBackdrop';
-import MessageAlert from '@/components/common/MessageAlert';
 import PdfSettings from '@/components/text-split/PdfSettings';
 import ChunkList from '@/components/text-split/ChunkList';
 import DomainAnalysis from '@/components/text-split/DomainAnalysis';
 import useTaskSettings from '@/hooks/useTaskSettings';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
-import axios from 'axios';
-
-// 自定义hooks
-import useChunks from '@/app/projects/[projectId]/text-split/useChunks';
-import useQuestionGeneration from '@/app/projects/[projectId]/text-split/useQuestionGeneration';
-import usePdfProcessing from '@/app/projects/[projectId]/text-split/usePdfProcessing';
-import useTextSplit from '@/app/projects/[projectId]/text-split/useTextSplit';
+import useChunks from './useChunks';
+import useQuestionGeneration from './useQuestionGeneration';
+import usePdfProcessing from './usePdfProcessing';
+import useTextSplit from './useTextSplit';
 import usePdfProcessingStatus from '@/hooks/usePdfProcessingStatus';
+import { toast } from 'sonner';
 
 export default function TextSplitPage({ params }) {
   const { t } = useTranslation();
@@ -37,8 +35,6 @@ export default function TextSplitPage({ params }) {
     chunks,
     tocData,
     loading,
-    error,
-    setError,
     fetchChunks,
     handleDeleteChunk,
     handleEditChunk,
@@ -56,12 +52,7 @@ export default function TextSplitPage({ params }) {
 
   const { pdfProcessing, progress: pdfProgress, handlePdfProcessing } = usePdfProcessing(projectId);
 
-  const { handleSplitText, handleUploadSuccess: handleTextUploadSuccess } = useTextSplit(
-    projectId,
-    addChunks,
-    updateTocData,
-    fetchChunks
-  );
+  const { handleSplitText } = useTextSplit(projectId, addChunks, updateTocData, fetchChunks);
 
   // 当前页面使用的进度状态
   const progress = processing ? questionProgress : pdfProgress;
@@ -71,14 +62,10 @@ export default function TextSplitPage({ params }) {
     fetchChunks('all');
   }, [fetchChunks, taskPdfProcessing]);
 
-  // 处理标签切换
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
-  // 文件上传成功的包装函数
+  /**
+   * 对上传后的文件进行处理
+   */
   const handleUploadSuccess = async (fileNames, pdfFiles, domainTreeAction) => {
-    // 设置页面加载状态为 true
     setLoading(true);
 
     try {
@@ -93,46 +80,26 @@ export default function TextSplitPage({ params }) {
           fileName['action'] = domainTreeAction;
           pdfFilesWithId.push(fileName);
         }
-        await handlePdfProcessing(pdfFilesWithId, pdfStrategy, selectedViosnModel, setError);
+        await handlePdfProcessing(pdfFilesWithId, pdfStrategy, selectedViosnModel);
       }
 
       // 处理文本分割 非pdf文件继续走文件
       const filesWithoutPdf = fileNames.filter(item => !item.fileName.endsWith('.pdf'));
       if (filesWithoutPdf && filesWithoutPdf.length > 0) {
-        await handleSplitText(filesWithoutPdf, selectedModelInfo, setError, setActiveTab, domainTreeAction);
+        await handleSplitText(filesWithoutPdf, selectedModelInfo, setActiveTab, domainTreeAction);
         //只有进行了文本分割流程后再reload整个页面
         location.reload();
       }
     } catch (error) {
-      console.error('文件处理错误:', error);
-      setError(error.message || '文件处理过程中发生错误');
+      toast.error('File upload failed' + error.message || '');
     } finally {
-      // 完成后设置页面加载状态为 false
-      //location.reload();
       setLoading(false);
     }
   };
 
   // 包装生成问题的处理函数
   const onGenerateQuestions = async chunkIds => {
-    await handleGenerateQuestions(chunkIds, selectedModelInfo, setError, fetchChunks);
-  };
-
-  // 处理文件删除
-  const handleFileDeleted = (fileName, filesCount) => {
-    console.log(t('textSplit.fileDeleted', { fileName }));
-    // 替换location.reload()为数据刷新
-    fetchChunks();
-  };
-
-  // 关闭错误提示
-  const handleCloseError = () => {
-    setError(null);
-  };
-
-  // 处理错误或成功提示
-  const renderAlert = () => {
-    return <MessageAlert message={error} onClose={handleCloseError} />;
+    await handleGenerateQuestions(chunkIds, selectedModelInfo, fetchChunks);
   };
 
   // 处理筛选器变更
@@ -145,7 +112,6 @@ export default function TextSplitPage({ params }) {
       url.searchParams.delete('filter');
     }
     window.history.replaceState({}, '', url);
-
     // 获取数据
     fetchChunks(questionFilter);
   }, [questionFilter]); // 移除了 fetchChunks 依赖，避免不必要的重渲染
@@ -167,7 +133,7 @@ export default function TextSplitPage({ params }) {
         projectId={projectId}
         onUploadSuccess={handleUploadSuccess}
         onProcessStart={handleSplitText}
-        onFileDeleted={handleFileDeleted}
+        onFileDeleted={fetchChunks}
         setPageLoading={setLoading}
         sendToPages={handleSelected}
         setPdfStrategy={setPdfStrategy}
@@ -195,7 +161,9 @@ export default function TextSplitPage({ params }) {
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs
           value={activeTab}
-          onChange={handleTabChange}
+          onChange={(event, newValue) => {
+            setActiveTab(newValue);
+          }}
           variant="fullWidth"
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
         >
@@ -230,9 +198,6 @@ export default function TextSplitPage({ params }) {
 
       {/* PDF 处理进度蒙版 */}
       <LoadingBackdrop open={pdfProcessing} title={t('textSplit.pdfProcessing')} progress={progress} />
-
-      {/* 错误或成功提示 */}
-      {renderAlert()}
     </Container>
   );
 }

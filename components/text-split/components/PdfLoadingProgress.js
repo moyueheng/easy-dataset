@@ -39,18 +39,18 @@ export default function PdfLoadingProgress({ pdfTask }) {
         >
           <Typography variant="body2" color="text.secondary">
             {t('textSplit.pdfPageProcessStatus', {
-              fileName: handleLongFileName(pdfTask.courent.fileName),
-              total: pdfTask.courent.totalPage,
-              completed: pdfTask.courent.processedPage
+              fileName: handleLongFileName(pdfTask.current.fileName),
+              total: pdfTask.current.totalPage,
+              completed: pdfTask.current.processedPage
             })}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {parseInt((pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100)}%
+            {parseInt((pdfTask.current.processedPage / pdfTask.current.totalPage) * 100)}%
           </Typography>
         </Box>
         <LinearProgress
           variant="determinate"
-          value={(pdfTask.courent.processedPage / pdfTask.courent.totalPage) * 100}
+          value={(pdfTask.current.processedPage / pdfTask.current.totalPage) * 100}
           sx={{ height: 8, borderRadius: 4 }}
         />
         <Box

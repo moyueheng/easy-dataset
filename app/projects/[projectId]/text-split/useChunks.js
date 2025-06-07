@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 /**
  * 文本块管理的自定义Hook
@@ -14,7 +15,6 @@ export default function useChunks(projectId, currentFilter = 'all') {
   const [chunks, setChunks] = useState([]);
   const [tocData, setTocData] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   /**
    * 获取文本块列表
@@ -41,13 +41,12 @@ export default function useChunks(projectId, currentFilter = 'all') {
           setTocData(data.toc);
         }
       } catch (error) {
-        console.error(t('textSplit.fetchChunksError'), error);
-        setError({ severity: 'error', message: error.message });
+        toast.error(error.message);
       } finally {
         setLoading(false);
       }
     },
-    [projectId, t, setLoading, setError, setChunks, setTocData]
+    [projectId, t, setLoading, setChunks, setTocData]
   );
 
   /**
@@ -69,8 +68,7 @@ export default function useChunks(projectId, currentFilter = 'all') {
         // 更新文本块列表
         setChunks(prev => prev.filter(chunk => chunk.id !== chunkId));
       } catch (error) {
-        console.error(t('textSplit.deleteChunkError'), error);
-        setError({ severity: 'error', message: error.message });
+        toast.error(error.message);
       }
     },
     [projectId, t]
@@ -85,7 +83,6 @@ export default function useChunks(projectId, currentFilter = 'all') {
     async (chunkId, newContent) => {
       try {
         setLoading(true);
-        setError(null);
 
         const response = await fetch(`/api/projects/${projectId}/chunks/${encodeURIComponent(chunkId)}`, {
           method: 'PATCH',
@@ -106,13 +103,9 @@ export default function useChunks(projectId, currentFilter = 'all') {
         const filterParam = url.searchParams.get('filter') || 'all';
         await fetchChunks(filterParam);
 
-        setError({
-          severity: 'success',
-          message: t('textSplit.editChunkSuccess')
-        });
+        toast.success(t('textSplit.editChunkSuccess'));
       } catch (error) {
-        console.error(t('textSplit.editChunkError'), error);
-        setError({ severity: 'error', message: error.message });
+        toast.error(error.message);
       } finally {
         setLoading(false);
       }
@@ -158,8 +151,6 @@ export default function useChunks(projectId, currentFilter = 'all') {
     chunks,
     tocData,
     loading,
-    error,
-    setError,
     fetchChunks,
     handleDeleteChunk,
     handleEditChunk,

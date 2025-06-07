@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/lib/i18n';
 import request from '@/lib/util/request';
 import { processInParallel } from '@/lib/util/async';
+import { toast } from 'sonner';
 
 /**
  * 问题生成的自定义Hook
@@ -41,15 +42,12 @@ export default function useQuestionGeneration(projectId, taskSettings) {
    * 处理生成问题
    * @param {Array} chunkIds - 文本块ID列表
    * @param {Object} selectedModelInfo - 选定的模型信息
-   * @param {Function} setError - 设置错误信息的函数
    * @param {Function} fetchChunks - 刷新文本块列表的函数
    */
   const handleGenerateQuestions = useCallback(
-    async (chunkIds, selectedModelInfo, setError, fetchChunks) => {
+    async (chunkIds, selectedModelInfo, fetchChunks) => {
       try {
         setProcessing(true);
-        setError && setError(null);
-
         // 重置进度状态
         setProgress({
           total: chunkIds.length,
@@ -89,14 +87,11 @@ export default function useQuestionGeneration(projectId, taskSettings) {
           }
 
           const data = await response.json();
-          console.log(t('textSplit.questionsGenerated', { chunkId, total: data.total }));
-          setError &&
-            setError({
-              severity: 'success',
-              message: t('textSplit.questionsGeneratedSuccess', {
-                total: data.total
-              })
-            });
+          toast.success(
+            t('textSplit.questionsGeneratedSuccess', {
+              total: data.total
+            })
+          );
         } else {
           // 如果是多个文本块，循环调用单个文本块的问题生成接口
           let totalQuestions = 0;
@@ -176,24 +171,20 @@ export default function useQuestionGeneration(projectId, taskSettings) {
 
           // 处理完成后设置结果消息
           if (errorCount > 0) {
-            setError &&
-              setError({
-                severity: 'warning',
-                message: t('textSplit.partialSuccess', {
-                  successCount,
-                  total: chunkIds.length,
-                  errorCount
-                })
-              });
+            toast.warning(
+              t('textSplit.partialSuccess', {
+                successCount,
+                total: chunkIds.length,
+                errorCount
+              })
+            );
           } else {
-            setError &&
-              setError({
-                severity: 'success',
-                message: t('textSplit.allSuccess', {
-                  successCount,
-                  totalQuestions
-                })
-              });
+            toast.success(
+              t('textSplit.allSuccess', {
+                successCount,
+                totalQuestions
+              })
+            );
           }
         }
 
@@ -202,8 +193,7 @@ export default function useQuestionGeneration(projectId, taskSettings) {
           fetchChunks();
         }
       } catch (error) {
-        console.error(t('textSplit.generateQuestionsError'), error);
-        setError && setError({ severity: 'error', message: error.message });
+        toast.error(error.message);
       } finally {
         setProcessing(false);
         // 重置进度状态

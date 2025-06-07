@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { selectedModelInfoAtom } from '@/lib/store';
 import { useAtomValue } from 'jotai/index';
-import { PrismaClient } from '@prisma/client';
 import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 import axios from 'axios';
@@ -44,13 +43,10 @@ export default function usePdfProcessing(projectId) {
    * @param {Array} pdfFiles - PDF文件列表
    * @param {string} pdfStrategy - PDF处理策略
    * @param {string} selectedViosnModel - 选定的视觉模型
-   * @param {Function} setError - 设置错误信息的函数
    */
   const handlePdfProcessing = useCallback(
-    async (pdfFiles, pdfStrategy, selectedViosnModel, setError) => {
+    async (pdfFiles, pdfStrategy, selectedViosnModel) => {
       try {
-        setError && setError(null);
-
         const currentLanguage = i18n.language === 'zh-CN' ? '中文' : 'en';
 
         //获取到视觉策略要使用的模型
@@ -58,7 +54,7 @@ export default function usePdfProcessing(projectId) {
         const vsionModel = availableModels.find(m => m.id === selectedViosnModel);
 
         // 为这一批PDF创建任务
-        const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
+        const response = await axios.post(`/api/projects/${projectId}/tasks`, {
           taskType: 'pdf-processing',
           modelInfo: vsionModel,
           language: currentLanguage,
@@ -77,10 +73,9 @@ export default function usePdfProcessing(projectId) {
         }
 
         //提示后台任务进行中
-        toast.success(t('tasks.createSuccess', { defaultValue: t('textSplit.pdfProcessingToast') }));
+        toast.success(t('textSplit.pdfProcessingToast'));
       } catch (error) {
-        console.error(t('textSplit.pdfProcessingFailed'), error);
-        setError && setError({ severity: 'error', message: error.message });
+        toast.error(t('textSplit.pdfProcessingFailed') + error.message || '');
       }
     },
     [projectId, t, resetProgress]

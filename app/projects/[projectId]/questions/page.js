@@ -383,7 +383,7 @@ export default function QuestionsPage({ params }) {
       }
 
       // 调用创建任务接口
-      const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
+      const response = await axios.post(`/api/projects/${projectId}/tasks`, {
         taskType: 'answer-generation',
         modelInfo: model,
         language: i18n.language

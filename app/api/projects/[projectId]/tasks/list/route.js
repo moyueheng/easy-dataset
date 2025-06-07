@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { processTask } from '@/lib/services/tasks';
 
 const prisma = new PrismaClient();
 
@@ -56,63 +55,6 @@ export async function GET(request, { params }) {
       {
         code: 500,
         error: '获取任务列表失败',
-        message: error.message
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// 创建新任务
-export async function POST(request, { params }) {
-  try {
-    const { projectId } = params;
-    const data = await request.json();
-
-    // 验证必填字段
-    const { taskType, modelInfo, language, detail = '', totalCount = 0, note } = data;
-
-    if (!taskType) {
-      return NextResponse.json(
-        {
-          code: 400,
-          error: '缺少必要参数: taskType'
-        },
-        { status: 400 }
-      );
-    }
-
-    // 创建新任务
-    const newTask = await prisma.task.create({
-      data: {
-        projectId,
-        taskType,
-        status: 0, // 初始状态: 处理中
-        modelInfo: typeof modelInfo === 'string' ? modelInfo : JSON.stringify(modelInfo),
-        language: language || 'zh-CN',
-        detail: detail || '',
-        totalCount,
-        note: note ? JSON.stringify(note) : '',
-        completedCount: 0
-      }
-    });
-
-    // 异步启动任务处理
-    processTask(newTask.id).catch(err => {
-      console.error(`任务启动失败: ${newTask.id}`, err);
-    });
-
-    return NextResponse.json({
-      code: 0,
-      data: newTask,
-      message: '任务创建成功'
-    });
-  } catch (error) {
-    console.error('创建任务失败:', error);
-    return NextResponse.json(
-      {
-        code: 500,
-        error: '创建任务失败',
         message: error.message
       },
       { status: 500 }
