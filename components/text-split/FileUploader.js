@@ -50,6 +50,9 @@ export default function FileUploader({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
+  /**
+   * 处理 PDF 处理方式选择
+   */
   const handleRadioChange = event => {
     const modelId = event.target.selectedVision;
     setPdfStrategy(event.target.value);
@@ -71,27 +74,14 @@ export default function FileUploader({
     setSuccess(true);
   };
 
-  // Load uploaded files list
   useEffect(() => {
     fetchUploadedFiles();
   }, [currentPage]);
 
-  // Fetch uploaded files list
   const fetchUploadedFiles = async (page = currentPage, size = pageSize) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        pageSize: size.toString()
-      });
-      const response = await fetch(`/api/projects/${projectId}/files?${params}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || t('textSplit.fetchFilesFailed'));
-      }
-
-      const data = await response.json();
+      const data = await fileApi.getFiles({ projectId, page, size, t });
       setUploadedFiles(data);
 
       // 判断是否为第一次上传（没有任何文件）
