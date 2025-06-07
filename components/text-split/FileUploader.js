@@ -11,8 +11,8 @@ import FileList from './components/FileList';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import PdfProcessingDialog from './components/PdfProcessingDialog';
 import DomainTreeActionDialog from './components/DomainTreeActionDialog';
-import { fileApi } from '@/lib/api';
-import { getContent } from '@/lib/file/file-process';
+import { fileApi, taskApi } from '@/lib/api';
+import { getContent, checkMaxSize, checkInvalidFiles, getvalidFiles } from '@/lib/file/file-process';
 
 export default function FileUploader({
   projectId,
@@ -50,6 +50,10 @@ export default function FileUploader({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
+  useEffect(() => {
+    fetchUploadedFiles();
+  }, [currentPage]);
+
   /**
    * 处理 PDF 处理方式选择
    */
@@ -74,27 +78,20 @@ export default function FileUploader({
     setSuccess(true);
   };
 
-  useEffect(() => {
-    fetchUploadedFiles();
-  }, [currentPage]);
-
+  /**
+   * 获取上传的文件列表
+   * @param {*} page
+   * @param {*} size
+   */
   const fetchUploadedFiles = async (page = currentPage, size = pageSize) => {
     try {
       setLoading(true);
       const data = await fileApi.getFiles({ projectId, page, size, t });
       setUploadedFiles(data);
 
-      // 判断是否为第一次上传（没有任何文件）
       setIsFirstUpload(data.total === 0);
 
-      //获取到配置信息，用于判断用户是否启用MinerU和视觉大模型
-      const taskResponse = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!taskResponse.ok) {
-        throw new Error(t('settings.fetchTasksFailed'));
-      }
-
-      const taskData = await taskResponse.json();
-
+      const taskData = await taskApi.getProjectTasks(projectId);
       setTaskSettings(taskData);
 
       //使用Jotai会出现数据获取的延迟，导致这里模型获取不到，改用localStorage获取模型信息
@@ -110,48 +107,26 @@ export default function FileUploader({
 
       setVisionModels(visionItems);
     } catch (error) {
-      console.error('获取文件列表出错:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 处理文件选择
+  /**
+   * 处理文件选择
+   */
   const handleFileSelect = event => {
     const selectedFiles = Array.from(event.target.files);
 
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
-    const oversizedFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE);
+    checkMaxSize(selectedFiles);
+    checkInvalidFiles(selectedFiles);
 
-    if (oversizedFiles.length > 0) {
-      setError(`Max 50MB: ${oversizedFiles.map(f => f.name).join(', ')}`);
-      return;
-    }
-
-    const validFiles = selectedFiles.filter(
-      file =>
-        file.name.endsWith('.md') ||
-        file.name.endsWith('.txt') ||
-        file.name.endsWith('.docx') ||
-        file.name.endsWith('.pdf')
-    );
-    const invalidFiles = selectedFiles.filter(
-      file =>
-        !file.name.endsWith('.md') &&
-        !file.name.endsWith('.txt') &&
-        !file.name.endsWith('.docx') &&
-        !file.name.endsWith('.pdf')
-    );
-
-    if (invalidFiles.length > 0) {
-      setError(t('textSplit.unsupportedFormat', { files: invalidFiles.map(f => f.name).join(', ') }));
-    }
+    const validFiles = getvalidFiles(selectedFiles);
 
     if (validFiles.length > 0) {
       setFiles(prev => [...prev, ...validFiles]);
     }
-    // If there are PDF files among the uploaded files, let the user choose the way to process the PDF files.
     const hasPdfFiles = selectedFiles.filter(file => file.name.endsWith('.pdf'));
     if (hasPdfFiles.length > 0) {
       setpdfProcessConfirmOpen(true);
@@ -159,19 +134,20 @@ export default function FileUploader({
     }
   };
 
-  // 移除文件
+  /**
+   * 从待上传文件列表中移除文件
+   */
   const removeFile = index => {
-    // 获取将要被移除的文件信息
     const fileToRemove = files[index];
-    // 更新 files 状态，移除该文件
     setFiles(prev => prev.filter((_, i) => i !== index));
-    // 如果被移除的文件是 PDF，则同时更新 pdfFiles 状态
     if (fileToRemove && fileToRemove.name.toLowerCase().endsWith('.pdf')) {
       setPdfFiles(prevPdfFiles => prevPdfFiles.filter(pdfFile => pdfFile.name !== fileToRemove.name));
     }
   };
 
-  // 上传文件
+  /**
+   * 上传文件
+   */
   const uploadFiles = async () => {
     if (files.length === 0) return;
 
@@ -187,7 +163,9 @@ export default function FileUploader({
     setDomainTreeActionOpen(true);
   };
 
-  // 处理领域树操作选择
+  /**
+   * 处理领域树操作选择
+   */
   const handleDomainTreeAction = action => {
     setDomainTreeActionOpen(false);
 
@@ -202,7 +180,9 @@ export default function FileUploader({
     setPendingAction(null);
   };
 
-  // 开始上传文件
+  /**
+   * 开始上传文件
+   */
   const handleStartUpload = async domainTreeActionType => {
     setUploading(true);
     setError(null);
@@ -214,11 +194,9 @@ export default function FileUploader({
         const data = await fileApi.uploadFile({ file, projectId, fileContent, fileName, t });
         uploadedFileInfos.push({ fileName: data.fileName, fileId: data.fileId });
       }
-
       setSuccessMessage(t('textSplit.uploadSuccess', { count: files.length }));
       setSuccess(true);
       setFiles([]);
-
       setCurrentPage(1);
       await fetchUploadedFiles();
       if (onUploadSuccess) {
