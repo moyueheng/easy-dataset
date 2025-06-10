@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import { getProjectRoot } from '@/lib/db/base';
 import { getTaskConfig } from '@/lib/db/projects';
 import { processTask } from '@/lib/services/tasks';
+import { db } from '@/lib/db/index';
 
 // 获取任务配置
 export async function GET(request, { params }) {
@@ -96,7 +97,7 @@ export async function POST(request, { params }) {
     }
 
     // 创建新任务
-    const newTask = await prisma.task.create({
+    const newTask = await db.task.create({
       data: {
         projectId,
         taskType,
