@@ -38,8 +38,8 @@ export default function Home() {
         // 检查是否有未迁移的项目
         await checkUnmigratedProjects();
       } catch (error) {
-        console.error(t('projects.fetchError'), error);
-        setError(error.message);
+        console.error(t('projects.fetchError'), String(error));
+        setError(String(error));
       } finally {
         setLoading(false);
       }

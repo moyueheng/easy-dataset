@@ -15,7 +15,7 @@ export async function GET(request) {
     }
     return NextResponse.json(models);
   } catch (error) {
-    console.error('Database query error:', error);
+    console.error('Database query error:', String(error));
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
   }
 }

@@ -11,8 +11,8 @@ export async function GET(request, { params }) {
     }
     return Response.json({ ...project, taskConfig });
   } catch (error) {
-    console.error('获取项目详情出错:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('获取项目详情出错:', String(error));
+    return Response.json({ error: String(error) }, { status: 500 });
   }
 }
 
@@ -35,8 +35,8 @@ export async function PUT(request, { params }) {
 
     return Response.json(updatedProject);
   } catch (error) {
-    console.error('更新项目出错:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('更新项目出错:', String(error));
+    return Response.json({ error: String(error) }, { status: 500 });
   }
 }
 

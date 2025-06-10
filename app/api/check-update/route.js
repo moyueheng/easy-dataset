@@ -9,7 +9,7 @@ function getCurrentVersion() {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     return packageJson.version;
   } catch (error) {
-    console.error('读取版本信息失败:', error);
+    console.error('读取版本信息失败:', String(error));
     return '1.0.0';
   }
 }
@@ -28,7 +28,7 @@ async function getLatestVersion() {
     const data = await response.json();
     return data.tag_name.replace('v', '');
   } catch (error) {
-    console.error('获取最新版本失败:', error);
+    console.error('获取最新版本失败:', String(error));
     return null;
   }
 }
@@ -58,7 +58,7 @@ export async function GET() {
       releaseUrl: hasUpdate ? `https://github.com/ConardLi/easy-dataset/releases/tag/v${latestVersion}` : null
     });
   } catch (error) {
-    console.error('检查更新失败:', error);
+    console.error('检查更新失败:', String(error));
   }
 }
 

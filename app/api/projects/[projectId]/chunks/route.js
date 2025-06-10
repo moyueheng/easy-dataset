@@ -15,7 +15,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(chunk);
   } catch (error) {
-    console.error('Failed to get text block content:', error);
-    return NextResponse.json({ error: error.message || 'Failed to get text block content' }, { status: 500 });
+    console.error('Failed to get text block content:', String(error));
+    return NextResponse.json({ error: String(error) || 'Failed to get text block content' }, { status: 500 });
   }
 }

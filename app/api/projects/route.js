@@ -30,8 +30,8 @@ export async function POST(request) {
     }
     return Response.json(newProject, { status: 201 });
   } catch (error) {
-    console.error('创建项目出错:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('创建项目出错:', String(error));
+    return Response.json({ error: String(error) }, { status: 500 });
   }
 }
 
@@ -41,7 +41,7 @@ export async function GET(request) {
     const projects = await getProjects();
     return Response.json(projects);
   } catch (error) {
-    console.error('获取项目列表出错:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('获取项目列表出错:', String(error));
+    return Response.json({ error: String(error) }, { status: 500 });
   }
 }
