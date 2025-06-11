@@ -28,13 +28,24 @@ export async function GET(request, { params }) {
     if (!projectId) {
       return NextResponse.json({ error: 'The project ID cannot be empty' }, { status: 400 });
     }
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page')) || 1;
+    const pageSize = parseInt(searchParams.get('pageSize')) || 10; // 每页10个文件，支持分页
+    const fileName = searchParams.get('fileName') || '';
+    const getAllIds = searchParams.get('getAllIds') === 'true'; // 新增：获取所有文件ID的标志
 
+    // 如果请求所有文件ID，直接返回ID列表
+    if (getAllIds) {
+      const allFiles = await getUploadFilesPagination(projectId, 1, 9999, fileName); // 获取所有文件
+      const allFileIds = allFiles.data?.map(file => String(file.id)) || [];
+      return NextResponse.json({ allFileIds });
+    }
     // 获取文件列表
-    const files = await getUploadFilesPagination(projectId, 1, 10, '');
+    const files = await getUploadFilesPagination(projectId, page, pageSize, fileName);
 
     return NextResponse.json(files);
   } catch (error) {
-    console.error('Error obtaining file list:', error);
+    console.error('Error obtaining file list:', String(error));
     return NextResponse.json({ error: error.message || 'Error obtaining file list' }, { status: 500 });
   }
 }
@@ -93,7 +104,7 @@ export async function DELETE(request, { params }) {
       await fs.unlink(tocPath);
       console.log(`成功删除 TOC 文件: ${tocPath}`);
     } catch (error) {
-      console.error(`删除 TOC 文件失败:`, error);
+      console.error(`删除 TOC 文件失败:`, String(error));
       // 即使 TOC 文件删除失败，不影响整体结果
     }
 
@@ -137,7 +148,7 @@ export async function DELETE(request, { params }) {
         project
       });
     } catch (error) {
-      console.error('Error updating domain tree after file deletion:', error);
+      console.error('Error updating domain tree after file deletion:', String(error));
       // 即使领域树更新失败，也不影响文件删除的结果
     }
 
@@ -148,7 +159,7 @@ export async function DELETE(request, { params }) {
       cascadeDelete: true
     });
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error('Error deleting file:', String(error));
     return NextResponse.json({ error: error.message || 'Error deleting file' }, { status: 500 });
   }
 }
@@ -234,7 +245,7 @@ export async function POST(request, { params }) {
       fileId: fileInfo.id
     });
   } catch (error) {
-    console.error('Error processing file upload:', error);
+    console.error('Error processing file upload:', String(error));
     console.error('Error stack:', error.stack);
     return NextResponse.json(
       {

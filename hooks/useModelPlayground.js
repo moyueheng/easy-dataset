@@ -171,7 +171,16 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
             const modelConversation = [...(prev[modelId] || [])];
             return {
               ...prev,
-              [modelId]: [...modelConversation, { role: 'assistant', content: '', isStreaming: true }]
+              [modelId]: [
+                ...modelConversation,
+                {
+                  role: 'assistant',
+                  content: '',
+                  isStreaming: true,
+                  thinking: '', // 添加推理过程字段
+                  showThinking: true // 默认显示推理过程
+                }
+              ]
             };
           });
 
@@ -194,12 +203,45 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
           const decoder = new TextDecoder('utf-8');
           let accumulatedContent = '';
 
+          // 状态变量，用于跟踪是否正在处理思维链
+          let isInThinking = false;
+          let currentThinking = '';
+          let currentContent = '';
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             // 解码收到的数据块
             const chunk = decoder.decode(value, { stream: true });
+
+            // 处理当前数据块
+            for (let i = 0; i < chunk.length; i++) {
+              const char = chunk[i];
+
+              // 检测开始标签 <think>
+              if (i + 6 <= chunk.length && chunk.substring(i, i + 7) === '<think>') {
+                isInThinking = true;
+                i += 6; // 跳过标签
+                continue;
+              }
+
+              // 检测结束标签 </think>
+              if (i + 7 <= chunk.length && chunk.substring(i, i + 8) === '</think>') {
+                isInThinking = false;
+                i += 7; // 跳过标签
+                continue;
+              }
+
+              // 根据当前状态添加到对应内容中
+              if (isInThinking) {
+                currentThinking += char;
+              } else {
+                currentContent += char;
+              }
+            }
+
+            // 累积全部内容以便最终处理
             accumulatedContent += chunk;
 
             // 更新对话内容
@@ -207,10 +249,12 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
               const modelConversation = [...prev[modelId]];
               const lastIndex = modelConversation.length - 1;
 
-              // 更新最后一条消息的内容
+              // 更新最后一条消息的内容，包括思维链
               modelConversation[lastIndex] = {
                 ...modelConversation[lastIndex],
-                content: accumulatedContent
+                content: currentContent,
+                thinking: currentThinking,
+                showThinking: currentThinking.length > 0 // 只要有思维链内容就显示
               };
 
               return {
@@ -221,6 +265,16 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
           }
 
           // 完成流式传输，移除流式标记
+          // 使用刚刚实时跟踪的 currentThinking 和 currentContent作为最终的思维链和内容
+          let finalThinking = currentThinking;
+          let finalAnswer = currentContent;
+
+          // 如果到流结束时还在思维链中，确保解析完整的思维链内容
+          if (isInThinking) {
+            console.log('警告: 流结束时仍在思维链中，可能有标签不完整');
+            isInThinking = false;
+          }
+
           setConversations(prev => {
             const modelConversation = [...prev[modelId]];
             const lastIndex = modelConversation.length - 1;
@@ -228,7 +282,9 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
             // 更新最后一条消息，移除流式标记
             modelConversation[lastIndex] = {
               role: 'assistant',
-              content: accumulatedContent,
+              content: finalAnswer,
+              thinking: finalThinking,
+              showThinking: finalThinking ? true : false,
               isStreaming: false
             };
 
@@ -245,7 +301,10 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              model: model,
+              model: {
+                ...model,
+                extra_body: { enable_thinking: true } // 启用思考链
+              },
               messages: requestMessages
             })
           });
@@ -258,9 +317,31 @@ export default function useModelPlayground(projectId, defaultModelId = null) {
             const modelConversation = [...(prev[modelId] || [])];
 
             if (response.ok) {
+              // 处理可能包含思考链的内容
+              let thinking = '';
+              let content = data.response;
+
+              // 检查是否包含思考链
+              if (content && content.includes('<think>')) {
+                const thinkParts = content.split(/<think>(.*?)<\/think>/s);
+                if (thinkParts.length >= 3) {
+                  thinking = thinkParts[1] || '';
+                  // 移除思考链部分，只保留最终回答
+                  content = thinkParts.filter((_, i) => i % 2 === 0).join('');
+                }
+              }
+
               return {
                 ...prev,
-                [modelId]: [...modelConversation, { role: 'assistant', content: data.response }]
+                [modelId]: [
+                  ...modelConversation,
+                  {
+                    role: 'assistant',
+                    content: content,
+                    thinking: thinking,
+                    showThinking: thinking ? true : false
+                  }
+                ]
               };
             } else {
               return {

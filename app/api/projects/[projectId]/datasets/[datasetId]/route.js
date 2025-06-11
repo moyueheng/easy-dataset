@@ -45,12 +45,12 @@ export async function GET(request, { params }) {
         }
       }
     } catch (error) {
-      console.error('计算Token数量失败:', error);
+      console.error('计算Token数量失败:', String(error));
     }
 
     return NextResponse.json({ datasets, ...counts, ...tokenCounts });
   } catch (error) {
-    console.error('获取数据集详情失败:', error);
+    console.error('获取数据集详情失败:', String(error));
     return NextResponse.json(
       {
         error: error.message || '获取数据集详情失败'

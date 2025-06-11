@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(tags);
   } catch (error) {
-    console.error('获取蒸馏标签失败:', error);
+    console.error('获取蒸馏标签失败:', String(error));
     return NextResponse.json({ error: error.message || '获取蒸馏标签失败' }, { status: 500 });
   }
 }

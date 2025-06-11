@@ -7,7 +7,7 @@ export async function GET() {
     const result = await getLlmProviders();
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Database query error:', error);
+    console.error('Database query error:', String(error));
     return NextResponse.json({ error: 'Database query failed' }, { status: 500 });
   }
 }

@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ tags });
   } catch (error) {
-    console.error('Failed to obtain the label tree:', error);
+    console.error('Failed to obtain the label tree:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to obtain the label tree' }, { status: 500 });
   }
 }
@@ -43,7 +43,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ tags: res });
     }
   } catch (error) {
-    console.error('Failed to update tags:', error);
+    console.error('Failed to update tags:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to update tags' }, { status: 500 });
   }
 }
@@ -62,7 +62,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to obtain the label tree:', error);
+    console.error('Failed to obtain the label tree:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to obtain the label tree' }, { status: 500 });
   }
 }
@@ -90,7 +90,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true, message: '删除标签成功', data: result });
   } catch (error) {
-    console.error('删除标签失败:', error);
+    console.error('删除标签失败:', String(error));
     return NextResponse.json(
       {
         error: error.message || '删除标签失败',

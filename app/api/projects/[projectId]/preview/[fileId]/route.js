@@ -36,7 +36,7 @@ export async function GET(request, { params }) {
       content: text
     });
   } catch (error) {
-    console.error('Failed to get text block content:', error);
+    console.error('Failed to get text block content:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to get text block content' }, { status: 500 });
   }
 }

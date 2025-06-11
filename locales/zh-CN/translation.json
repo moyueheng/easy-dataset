@@ -281,15 +281,19 @@
     "generateQuestions": "生成问题",
     "charsCount": "字符",
     "pdfProcess": "[beta]检测到PDF文件，请选择 PDF 文件处理方式！",
-    "pdfProcessStatus": "共{{total}}个PDF文件，{{completed}}个已完成转换",
-    "pdfProcessing": "正在转换PDF文件...",
-    "pdfProcessingFailed": "PDF文件转换失败！",
+    "pdfProcessStatus": "共 {{total}} 个文件，{{completed}} 个已处理完成",
+    "pdfPageProcessStatus": "正在处理 {{fileName}} 共{{total}}页，{{completed}}页已完成转换",
+    "pdfProcessing": "正在转换文件...",
+    "pdfProcessingFailed": "文件处理失败！",
     "selectPdfProcessingStrategy": "请选择PDF文件处理方式：",
     "pdfProcessingStrategyDefault": "默认",
     "pdfProcessingStrategyDefaultHelper": "使用内置PDF解析策略",
     "pdfProcessingStrategyMinerUHelper": "使用MinerU API解析，请先配置MinerU API Token",
     "pdfProcessingStrategyVision": "自定义视觉模型",
     "pdfProcessingStrategyVisionHelper": "使用自定义视觉模型解析",
+    "pdfProcessingToast": "上传文件成功，系统将创建后台任务解析文件！",
+    "pdfProcessingLoading": "正在执行文件处理任务，请等待任务完成后再上传新文件...",
+    "pdfProcessingWaring": "正在执行文件处理任务，建议当任务完成后再进行其他操作，否则可能会影响数据生成质量！",
     "basicPdfParsing": "基础 PDF 解析",
     "basicPdfParsingDesc": "可识别简单的 PDF 文件，包括关键目录结构，速度更快",
     "mineruApiDesc": "可识别复杂 PDF 文件，包括公式、图表（需要配置 MinerU API Key）",
@@ -519,7 +523,8 @@
     "normalOutput": "普通输出",
     "streamingOutput": "流式输出",
     "clearConversation": "清空对话",
-    "selectModelMax3": "选择模型（最多3个）"
+    "selectModelMax3": "选择模型（最多3个）",
+    "reasoningProcess": "推理过程"
   },
   "chunks": {
     "title": "文本块",
@@ -539,10 +544,10 @@
     "saveAllModels": "保存所有模型配置",
     "edit": "编辑",
     "delete": "删除",
-    "modelName": "模型名称",
+    "modelName": "模型名称（可自定义输入）",
     "endpoint": "接口地址",
     "apiKey": "API密钥",
-    "provider": "提供商",
+    "provider": "提供商（可自定义输入）",
     "localModel": "本地模型",
     "apiKeyConfigured": "API Key 已经配置",
     "apiKeyNotConfigured": "API Key 未配置",
@@ -673,7 +678,8 @@
       "text-processing": "文献处理",
       "question-generation": "问题生成",
       "answer-generation": "答案生成",
-      "data-distillation": "数据蒸馈"
+      "data-distillation": "数据蒸馈",
+      "pdf-processing": "PDF解析"
     },
     "filters": {
       "status": "任务状态",
@@ -769,6 +775,8 @@
     "fetchModelConfigFailed": "获取模型配置失败: {{status}}",
     "fetchProjectModelError": "获取项目模型配置时出错",
     "batchGenerationFailed": "批量生成GA对失败",
-    "batchGenerationSuccess": "成功为 {{count}} 个文件生成GA对"
+    "batchGenerationSuccess": "成功为 {{count}} 个文件生成GA对",
+    "selectAllFiles": "全选",
+    "deselectAllFiles": "取消全选"
   }
 }

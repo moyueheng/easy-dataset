@@ -50,7 +50,7 @@ export async function POST(request) {
       message: '已打开项目目录'
     });
   } catch (error) {
-    console.error('打开项目目录出错:', error);
+    console.error('打开项目目录出错:', String(error));
     return NextResponse.json(
       {
         success: false,

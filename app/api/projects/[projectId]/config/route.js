@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
     const taskConfig = await getTaskConfig(projectId);
     return NextResponse.json({ ...config, ...taskConfig });
   } catch (error) {
-    console.error('获取项目配置失败:', error);
+    console.error('获取项目配置失败:', String(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -30,7 +30,7 @@ export async function PUT(request, { params }) {
     const config = await updateProject(projectId, updatedConfig);
     return NextResponse.json(config);
   } catch (error) {
-    console.error('更新项目配置失败:', error);
+    console.error('更新项目配置失败:', String(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
     // 返回文本块信息
     return NextResponse.json(chunk);
   } catch (error) {
-    console.error('根据名称获取文本块失败:', error);
+    console.error('根据名称获取文本块失败:', String(error));
     return NextResponse.json({ error: '获取文本块失败: ' + error.message }, { status: 500 });
   }
 }

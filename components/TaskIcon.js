@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Badge, IconButton, Tooltip, Box, CircularProgress } from '@mui/material';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
+import useFileProcessingStatus from '@/hooks/useFileProcessingStatus';
 import axios from 'axios';
 
 // 任务图标组件
@@ -14,16 +14,29 @@ export default function TaskIcon({ projectId, theme }) {
   const router = useRouter();
   const [tasks, setTasks] = useState([]);
   const [polling, setPolling] = useState(false);
+  const { setTaskFileProcessing, setTask } = useFileProcessingStatus();
 
   // 获取项目的未完成任务列表
   const fetchPendingTasks = async () => {
     if (!projectId) return;
 
     try {
-      // 移除 loading 状态设置，避免在请求数据时显示 loading 图标
       const response = await axios.get(`/api/projects/${projectId}/tasks/list?status=0`);
       if (response.data?.code === 0) {
-        setTasks(response.data.data || []);
+        const tasks = response.data.data || [];
+        setTasks(tasks);
+        // 检查是否有文件处理任务正在进行
+        const hasActiveFileTask = tasks.some(
+          task => task.projectId === projectId && task.taskType === 'file-processing'
+        );
+        setTaskFileProcessing(hasActiveFileTask);
+        //存在文件处理任务，将任务信息传递给共享状态
+        if (hasActiveFileTask) {
+          const activeTask = tasks.find(task => task.projectId === projectId && task.taskType === 'file-processing');
+          // 解析任务详情信息
+          const detailInfo = JSON.parse(activeTask.detail);
+          setTask(detailInfo);
+        }
       }
     } catch (error) {
       console.error('获取任务列表失败:', error);

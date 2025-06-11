@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import {
-  getGaPairsByFileId,
-  updateGaPair,
-  toggleGaPairActive,
-  batchUpdateGaPairs,
-  saveGaPairs,
-  hasGaPairs,
-  deleteGaPairsByFileId,
-  createGaPairs
-} from '@/lib/db/ga-pairs';
+import { getGaPairsByFileId, toggleGaPairActive, saveGaPairs, createGaPairs } from '@/lib/db/ga-pairs';
 import { getUploadFileInfoById } from '@/lib/db/upload-files';
-import { generateGaPairs } from '@/lib/services/ga-generation';
+import { generateGaPairs } from '@/lib/services/ga/ga-generation';
 import logger from '@/lib/util/logger';
 import { db } from '@/lib/db/index';
 
@@ -200,7 +191,7 @@ export async function GET(request, { params }) {
       data: gaPairs
     });
   } catch (error) {
-    console.error('Error getting GA pairs:', error);
+    console.error('Error getting GA pairs:', String(error));
     return NextResponse.json({ error: 'Failed to get GA pairs' }, { status: 500 });
   }
 }
@@ -299,7 +290,7 @@ export async function PATCH(request, { params }) {
       data: updatedPair
     });
   } catch (error) {
-    console.error('Error toggling GA pair active status:', error);
+    console.error('Error toggling GA pair active status:', String(error));
     return NextResponse.json({ error: 'Failed to toggle GA pair active status' }, { status: 500 });
   }
 }

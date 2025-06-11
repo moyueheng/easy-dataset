@@ -473,7 +473,7 @@ const QuestionItem = memo(
             }
           />
           <Box>
-            <Tooltip title={t('questions.edit')}>
+            <Tooltip title={t('common.edit')}>
               <IconButton
                 size="small"
                 sx={{ mr: 1 }}

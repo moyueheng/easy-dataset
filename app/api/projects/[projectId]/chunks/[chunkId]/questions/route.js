@@ -67,7 +67,7 @@ export async function GET(request, { params }) {
       total: questions.length
     });
   } catch (error) {
-    console.error('Error getting questions:', error);
+    console.error('Error getting questions:', String(error));
     return NextResponse.json({ error: error.message || 'Error getting questions' }, { status: 500 });
   }
 }

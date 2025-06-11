@@ -36,7 +36,7 @@ export async function GET(request, { params }) {
       return NextResponse.json(treeData);
     }
   } catch (error) {
-    console.error('获取问题树形数据失败:', error);
+    console.error('获取问题树形数据失败:', String(error));
     return NextResponse.json({ error: error.message || '获取问题树形数据失败' }, { status: 500 });
   }
 }

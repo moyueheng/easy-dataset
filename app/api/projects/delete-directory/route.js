@@ -47,7 +47,7 @@ export async function POST(request) {
       message: '项目目录已删除'
     });
   } catch (error) {
-    console.error('删除项目目录出错:', error);
+    console.error('删除项目目录出错:', String(error));
     return NextResponse.json(
       {
         success: false,

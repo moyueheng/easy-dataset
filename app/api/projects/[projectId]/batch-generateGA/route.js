@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { batchGenerateGaPairs } from '@/lib/services/ga-pairs';
+import { batchGenerateGaPairs } from '@/lib/services/ga/ga-pairs';
 import { getUploadFileInfoById } from '@/lib/db/upload-files'; // 导入单个文件查询函数
 
 /**
@@ -48,7 +48,7 @@ export async function POST(request, { params }) {
           invalidFileIds.push(fileId);
         }
       } catch (error) {
-        console.error(`验证文件 ${fileId} 时出错:`, error);
+        console.error(`验证文件 ${fileId} 时出错:`, String(error));
         invalidFileIds.push(fileId);
       }
     }
@@ -100,7 +100,7 @@ export async function POST(request, { params }) {
       message: `Generated GA pairs for ${successCount} files, ${failureCount} failed, ${invalidFileIds.length} files not found`
     });
   } catch (error) {
-    console.error('Error batch generating GA pairs:', error);
-    return NextResponse.json({ error: error.message || 'Failed to batch generate GA pairs' }, { status: 500 });
+    console.error('Error batch generating GA pairs:', String(error));
+    return NextResponse.json({ error: String(error) || 'Failed to batch generate GA pairs' }, { status: 500 });
   }
 }

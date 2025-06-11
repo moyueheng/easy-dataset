@@ -12,7 +12,7 @@ export async function DELETE(request, { params }) {
     await deleteModelConfigById(modelConfigId);
     return NextResponse.json(true);
   } catch (error) {
-    console.error('Error obtaining model configuration:', error);
+    console.error('Error obtaining model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to obtain model configuration' }, { status: 500 });
   }
 }

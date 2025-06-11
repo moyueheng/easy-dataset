@@ -65,7 +65,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(questions);
   } catch (error) {
-    console.error('[distill/questions/by-tag] 获取问题失败:', error);
+    console.error('[distill/questions/by-tag] 获取问题失败:', String(error));
     return NextResponse.json({ error: error.message || '获取问题失败' }, { status: 500 });
   }
 }

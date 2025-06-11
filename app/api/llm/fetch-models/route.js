@@ -39,7 +39,7 @@ export async function POST(request) {
 
     return NextResponse.json(formattedModels);
   } catch (error) {
-    console.error('获取模型列表失败:', error);
+    console.error('获取模型列表失败:', String(error));
 
     // 处理特定错误
     if (error.response) {

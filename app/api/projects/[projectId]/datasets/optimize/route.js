@@ -69,7 +69,7 @@ export async function POST(request, { params }) {
       dataset: updatedDataset
     });
   } catch (error) {
-    console.error('Failed to optimize answer:', error);
+    console.error('Failed to optimize answer:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to optimize answer' }, { status: 500 });
   }
 }

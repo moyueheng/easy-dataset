@@ -9,22 +9,13 @@ export async function POST(request, { params }) {
   try {
     const { projectId } = params;
 
-    // 验证项目ID
-    if (!projectId) {
-      return NextResponse.json({ error: '项目ID不能为空' }, { status: 400 });
-    }
-
     // 获取请求体
-    const { fileNames, model, language, fileId, domainTreeAction = 'rebuild' } = await request.json();
+    const { fileNames, model, language, domainTreeAction = 'rebuild' } = await request.json();
 
     if (!model) {
       return NextResponse.json({ error: 'Pelease Select Model' }, { status: 400 });
     }
 
-    // 验证文件名
-    if (!fileNames) {
-      return NextResponse.json({ error: '文件名不能为空' }, { status: 400 });
-    }
     const project = await getProject(projectId);
 
     let result = {
@@ -63,7 +54,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ ...result, tags });
   } catch (error) {
-    console.error('Text split error:', error);
+    console.error('Text split error:', String(error));
     return NextResponse.json({ error: error.message || 'Text split failed' }, { status: 500 });
   }
 }
@@ -91,7 +82,7 @@ export async function GET(request, { params }) {
       tags
     });
   } catch (error) {
-    console.error('Failed to get text chunks:', error);
+    console.error('Failed to get text chunks:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to get text chunks' }, { status: 500 });
   }
 }

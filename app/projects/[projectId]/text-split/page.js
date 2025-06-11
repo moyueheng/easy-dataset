@@ -1,24 +1,22 @@
 'use client';
 
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Container, Box, Tabs, Tab } from '@mui/material';
+import { Container, Box, Tabs, Tab, Alert, AlertTitle } from '@mui/material';
 import FileUploader from '@/components/text-split/FileUploader';
 import LoadingBackdrop from '@/components/text-split/LoadingBackdrop';
-import MessageAlert from '@/components/common/MessageAlert';
 import PdfSettings from '@/components/text-split/PdfSettings';
 import ChunkList from '@/components/text-split/ChunkList';
 import DomainAnalysis from '@/components/text-split/DomainAnalysis';
 import useTaskSettings from '@/hooks/useTaskSettings';
 import { useAtomValue } from 'jotai/index';
 import { selectedModelInfoAtom } from '@/lib/store';
-import axios from 'axios';
-
-// 自定义hooks
-import useChunks from '@/app/projects/[projectId]/text-split/useChunks';
-import useQuestionGeneration from '@/app/projects/[projectId]/text-split/useQuestionGeneration';
-import usePdfProcessing from '@/app/projects/[projectId]/text-split/usePdfProcessing';
-import useTextSplit from '@/app/projects/[projectId]/text-split/useTextSplit';
+import useChunks from './useChunks';
+import useQuestionGeneration from './useQuestionGeneration';
+import useFileProcessing from './useFileProcessing';
+import useFileProcessingStatus from '@/hooks/useFileProcessingStatus';
+import { toast } from 'sonner';
 
 export default function TextSplitPage({ params }) {
   const { t } = useTranslation();
@@ -29,22 +27,11 @@ export default function TextSplitPage({ params }) {
   const [questionFilter, setQuestionFilter] = useState('all'); // 'all', 'generated', 'ungenerated'
   const [selectedViosnModel, setSelectedViosnModel] = useState('');
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
+  const { taskFileProcessing, task } = useFileProcessingStatus();
 
   // 使用自定义hooks
-  const {
-    chunks,
-    tocData,
-    loading,
-    error,
-    setError,
-    fetchChunks,
-    handleDeleteChunk,
-    handleEditChunk,
-    updateChunks,
-    addChunks,
-    updateTocData,
-    setLoading
-  } = useChunks(projectId, questionFilter);
+  const { chunks, tocData, loading, fetchChunks, handleDeleteChunk, handleEditChunk, updateChunks, setLoading } =
+    useChunks(projectId, questionFilter);
 
   const {
     processing,
@@ -52,14 +39,7 @@ export default function TextSplitPage({ params }) {
     handleGenerateQuestions
   } = useQuestionGeneration(projectId, taskSettings);
 
-  const { pdfProcessing, progress: pdfProgress, handlePdfProcessing } = usePdfProcessing(projectId);
-
-  const { handleSplitText, handleUploadSuccess: handleTextUploadSuccess } = useTextSplit(
-    projectId,
-    addChunks,
-    updateTocData,
-    fetchChunks
-  );
+  const { fileProcessing, progress: pdfProgress, handleFileProcessing } = useFileProcessing(projectId);
 
   // 当前页面使用的进度状态
   const progress = processing ? questionProgress : pdfProgress;
@@ -67,62 +47,26 @@ export default function TextSplitPage({ params }) {
   // 加载文本块数据
   useEffect(() => {
     fetchChunks('all');
-  }, [fetchChunks]);
+  }, [fetchChunks, taskFileProcessing]);
 
-  // 处理标签切换
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
-  // 文件上传成功的包装函数
+  /**
+   * 对上传后的文件进行处理
+   */
   const handleUploadSuccess = async (fileNames, pdfFiles, domainTreeAction) => {
-    // 设置页面加载状态为 true
-    setLoading(true);
-
     try {
-      // 处理PDF文件
-      if (pdfFiles && pdfFiles.length > 0) {
-        await handlePdfProcessing(pdfFiles, pdfStrategy, selectedViosnModel, setError);
-      }
-
-      // 处理文本分割
-      if (fileNames && fileNames.length > 0) {
-        await handleSplitText(fileNames, selectedModelInfo, setError, setActiveTab, domainTreeAction);
-      }
-    } catch (error) {
-      console.error('文件处理错误:', error);
-      setError(error.message || '文件处理过程中发生错误');
-    } finally {
-      // 完成后设置页面加载状态为 false
+      await handleFileProcessing(fileNames, pdfStrategy, selectedViosnModel, domainTreeAction);
       location.reload();
+    } catch (error) {
+      toast.error('File upload failed' + error.message || '');
     }
   };
 
   // 包装生成问题的处理函数
   const onGenerateQuestions = async chunkIds => {
-    await handleGenerateQuestions(chunkIds, selectedModelInfo, setError, fetchChunks);
+    await handleGenerateQuestions(chunkIds, selectedModelInfo, fetchChunks);
   };
 
-  // 处理文件删除
-  const handleFileDeleted = (fileName, filesCount) => {
-    console.log(t('textSplit.fileDeleted', { fileName }));
-    // 替换location.reload()为数据刷新
-    fetchChunks();
-  };
-
-  // 关闭错误提示
-  const handleCloseError = () => {
-    setError(null);
-  };
-
-  // 处理错误或成功提示
-  const renderAlert = () => {
-    return <MessageAlert message={error} onClose={handleCloseError} />;
-  };
-
-  // 处理筛选器变更
   useEffect(() => {
-    // 更新 URL 中的 filter 参数
     const url = new URL(window.location.href);
     if (questionFilter !== 'all') {
       url.searchParams.set('filter', questionFilter);
@@ -130,10 +74,8 @@ export default function TextSplitPage({ params }) {
       url.searchParams.delete('filter');
     }
     window.history.replaceState({}, '', url);
-
-    // 获取数据
     fetchChunks(questionFilter);
-  }, [questionFilter]); // 移除了 fetchChunks 依赖，避免不必要的重渲染
+  }, [questionFilter]);
 
   const handleSelected = array => {
     if (array.length > 0) {
@@ -151,14 +93,15 @@ export default function TextSplitPage({ params }) {
       <FileUploader
         projectId={projectId}
         onUploadSuccess={handleUploadSuccess}
-        onProcessStart={handleSplitText}
-        onFileDeleted={handleFileDeleted}
+        onFileDeleted={fetchChunks}
         setPageLoading={setLoading}
         sendToPages={handleSelected}
         setPdfStrategy={setPdfStrategy}
         pdfStrategy={pdfStrategy}
         selectedViosnModel={selectedViosnModel}
         setSelectedViosnModel={setSelectedViosnModel}
+        taskFileProcessing={taskFileProcessing}
+        fileTask={task}
       >
         <PdfSettings
           pdfStrategy={pdfStrategy}
@@ -172,7 +115,9 @@ export default function TextSplitPage({ params }) {
       <Box sx={{ width: '100%', mb: 3 }}>
         <Tabs
           value={activeTab}
-          onChange={handleTabChange}
+          onChange={(event, newValue) => {
+            setActiveTab(newValue);
+          }}
           variant="fullWidth"
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
         >
@@ -205,11 +150,8 @@ export default function TextSplitPage({ params }) {
       {/* 处理中蒙版 */}
       <LoadingBackdrop open={processing} title={t('textSplit.processing')} progress={progress} />
 
-      {/* PDF 处理进度蒙版 */}
-      <LoadingBackdrop open={pdfProcessing} title={t('textSplit.pdfProcessing')} progress={progress} />
-
-      {/* 错误或成功提示 */}
-      {renderAlert()}
+      {/* 文件处理进度蒙版 */}
+      <LoadingBackdrop open={fileProcessing} title={t('textSplit.pdfProcessing')} progress={progress} />
     </Container>
   );
 }

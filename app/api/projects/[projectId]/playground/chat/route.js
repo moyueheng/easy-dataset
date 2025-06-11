@@ -51,9 +51,10 @@ export async function POST(request, { params }) {
     // 调用LLM API
     let response = '';
     try {
-      response = await llmClient.getResponse(formattedMessages);
+      const { answer, cot } = await llmClient.getResponseWithCOT(formattedMessages);
+      response = `<think>${cot}</think>${answer}`;
     } catch (error) {
-      console.error('Failed to call LLM API:', error);
+      console.error('Failed to call LLM API:', String(error));
       return NextResponse.json(
         {
           error: `Failed to call ${model.provider} model: ${error.message}`
@@ -64,7 +65,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ response });
   } catch (error) {
-    console.error('Failed to process chat request:', error);
+    console.error('Failed to process chat request:', String(error));
     return NextResponse.json({ error: `Failed to process chat request: ${error.message}` }, { status: 500 });
   }
 }

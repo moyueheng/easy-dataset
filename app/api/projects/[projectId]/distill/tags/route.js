@@ -55,7 +55,7 @@ export async function POST(request, { params }) {
     try {
       tags = JSON.parse(answer);
     } catch (error) {
-      console.error('解析标签JSON失败:', error);
+      console.error('解析标签JSON失败:', String(error));
       // 尝试使用正则表达式提取标签
       const matches = answer.match(/"([^"]+)"/g);
       if (matches) {
@@ -77,13 +77,13 @@ export async function POST(request, { params }) {
         });
         savedTags.push(tag);
       } catch (error) {
-        console.error(`[标签生成] 保存标签 ${tagName} 失败:`, error);
+        console.error(`[标签生成] 保存标签 ${tagName} 失败:`, String(error));
         throw error;
       }
     }
     return NextResponse.json(savedTags);
   } catch (error) {
-    console.error('[标签生成] 生成标签失败:', error);
+    console.error('[标签生成] 生成标签失败:', String(error));
     console.error('[标签生成] 错误堆栈:', error.stack);
     return NextResponse.json({ error: error.message || '生成标签失败' }, { status: 500 });
   }
