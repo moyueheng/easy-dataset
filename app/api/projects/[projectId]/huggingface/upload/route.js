@@ -103,7 +103,7 @@ export async function POST(request, { params }) {
       // 3. 上传 README.md
       await uploadFile(token, datasetName, readmePath, 'README.md');
     } catch (error) {
-      console.error('Upload to HuggingFace Failed:', error);
+      console.error('Upload to HuggingFace Failed:', String(error));
       return NextResponse.json({ error: `Upload Error: ${error.message}` }, { status: 500 });
     }
 
@@ -118,7 +118,7 @@ export async function POST(request, { params }) {
       url: datasetUrl
     });
   } catch (error) {
-    console.error('Upload Faile:', error);
+    console.error('Upload Faile:', String(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -244,7 +244,7 @@ async function uploadFile(token, datasetName, filePath, destFileName) {
 
     return { success: true };
   } catch (error) {
-    console.error(`File ${destFileName} Upload Error:`, error);
+    console.error(`File ${destFileName} Upload Error:`, String(error));
     throw error;
   }
 }

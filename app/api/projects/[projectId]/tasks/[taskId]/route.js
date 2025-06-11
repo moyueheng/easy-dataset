@@ -43,7 +43,7 @@ export async function GET(request, { params }) {
       message: '获取任务详情成功'
     });
   } catch (error) {
-    console.error('获取任务详情失败:', error);
+    console.error('获取任务详情失败:', String(error));
     return NextResponse.json(
       {
         code: 500,
@@ -117,7 +117,7 @@ export async function PATCH(request, { params }) {
       message: '更新任务状态成功'
     });
   } catch (error) {
-    console.error('更新任务状态失败:', error);
+    console.error('更新任务状态失败:', String(error));
     return NextResponse.json(
       {
         code: 500,
@@ -158,7 +158,7 @@ export async function DELETE(request, { params }) {
       message: '删除任务成功'
     });
   } catch (error) {
-    console.error('删除任务失败:', error);
+    console.error('删除任务失败:', String(error));
     return NextResponse.json(
       {
         code: 500,

@@ -103,7 +103,7 @@ export async function POST(request, { params }) {
           });
         }
       } catch (error) {
-        console.error(`Failed to generate questions for text block ${chunk.id}:`, error);
+        console.error(`Failed to generate questions for text block ${chunk.id}:`, String(error));
         errors.push({
           chunkId: chunk.id,
           error: error.message || 'Failed to generate questions'
@@ -120,7 +120,7 @@ export async function POST(request, { params }) {
       totalChunks: chunks.length
     });
   } catch (error) {
-    console.error('Failed to generate questions:', error);
+    console.error('Failed to generate questions:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to generate questions' }, { status: 500 });
   }
 }

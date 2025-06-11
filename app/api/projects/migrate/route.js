@@ -31,7 +31,7 @@ export async function POST() {
       taskId
     });
   } catch (error) {
-    console.error('启动迁移任务失败:', error);
+    console.error('启动迁移任务失败:', String(error));
     return NextResponse.json(
       {
         success: false,
@@ -80,7 +80,7 @@ export async function GET(request) {
       task
     });
   } catch (error) {
-    console.error('获取迁移任务状态失败:', error);
+    console.error('获取迁移任务状态失败:', String(error));
     return NextResponse.json(
       {
         success: false,
@@ -150,7 +150,7 @@ async function executeMigration(taskId) {
       30 * 60 * 1000
     );
   } catch (error) {
-    console.error(`执行迁移任务 ${taskId} 失败:`, error);
+    console.error(`执行迁移任务 ${taskId} 失败:`, String(error));
 
     // 获取任务状态
     const task = migrationTasks.get(taskId);

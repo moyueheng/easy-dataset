@@ -63,7 +63,7 @@ export async function GET(request) {
       timestamp
     });
   } catch (error) {
-    console.error('获取未迁移项目列表出错:', error);
+    console.error('获取未迁移项目列表出错:', String(error));
     return NextResponse.json(
       {
         success: false,

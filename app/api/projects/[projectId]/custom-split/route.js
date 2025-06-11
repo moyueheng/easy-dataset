@@ -46,7 +46,7 @@ export async function POST(request, { params }) {
       totalChunks: customChunks.length
     });
   } catch (error) {
-    console.error('自定义分块处理出错:', error);
+    console.error('自定义分块处理出错:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to process custom split request' }, { status: 500 });
   }
 }

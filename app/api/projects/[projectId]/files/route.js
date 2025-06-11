@@ -45,7 +45,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(files);
   } catch (error) {
-    console.error('Error obtaining file list:', error);
+    console.error('Error obtaining file list:', String(error));
     return NextResponse.json({ error: error.message || 'Error obtaining file list' }, { status: 500 });
   }
 }
@@ -104,7 +104,7 @@ export async function DELETE(request, { params }) {
       await fs.unlink(tocPath);
       console.log(`成功删除 TOC 文件: ${tocPath}`);
     } catch (error) {
-      console.error(`删除 TOC 文件失败:`, error);
+      console.error(`删除 TOC 文件失败:`, String(error));
       // 即使 TOC 文件删除失败，不影响整体结果
     }
 
@@ -148,7 +148,7 @@ export async function DELETE(request, { params }) {
         project
       });
     } catch (error) {
-      console.error('Error updating domain tree after file deletion:', error);
+      console.error('Error updating domain tree after file deletion:', String(error));
       // 即使领域树更新失败，也不影响文件删除的结果
     }
 
@@ -159,7 +159,7 @@ export async function DELETE(request, { params }) {
       cascadeDelete: true
     });
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error('Error deleting file:', String(error));
     return NextResponse.json({ error: error.message || 'Error deleting file' }, { status: 500 });
   }
 }
@@ -245,7 +245,7 @@ export async function POST(request, { params }) {
       fileId: fileInfo.id
     });
   } catch (error) {
-    console.error('Error processing file upload:', error);
+    console.error('Error processing file upload:', String(error));
     console.error('Error stack:', error.stack);
     return NextResponse.json(
       {

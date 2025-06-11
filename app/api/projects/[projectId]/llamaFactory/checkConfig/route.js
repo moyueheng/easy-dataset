@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
       configPath: exists ? configPath : null
     });
   } catch (error) {
-    console.error('Error checking Llama Factory config:', error);
+    console.error('Error checking Llama Factory config:', String(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

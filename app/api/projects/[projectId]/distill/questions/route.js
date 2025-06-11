@@ -82,7 +82,7 @@ export async function POST(request, { params }) {
     try {
       questions = JSON.parse(answer);
     } catch (error) {
-      console.error('解析问题JSON失败:', error);
+      console.error('解析问题JSON失败:', String(error));
       // 尝试使用正则表达式提取问题
       const matches = answer.match(/"([^"]+)"/g);
       if (matches) {
@@ -106,7 +106,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(savedQuestions);
   } catch (error) {
-    console.error('生成问题失败:', error);
+    console.error('生成问题失败:', String(error));
     return NextResponse.json({ error: error.message || '生成问题失败' }, { status: 500 });
   }
 }

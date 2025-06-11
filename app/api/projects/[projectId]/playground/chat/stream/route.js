@@ -56,7 +56,7 @@ export async function POST(request, { params }) {
       );
     }
   } catch (error) {
-    console.error('Failed to process stream chat request:', error);
+    console.error('Failed to process stream chat request:', String(error));
     return NextResponse.json({ error: `Failed to process stream chat request: ${error.message}` }, { status: 500 });
   }
 }

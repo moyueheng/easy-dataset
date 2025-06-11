@@ -46,7 +46,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(model);
   } catch (error) {
-    console.error('Error getting model:', error);
+    console.error('Error getting model:', String(error));
     return NextResponse.json({ error: 'Failed to get model' }, { status: 500 });
   }
 }
@@ -114,7 +114,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ message: 'Model configuration updated successfully' });
   } catch (error) {
-    console.error('Error updating model configuration:', error);
+    console.error('Error updating model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to update model configuration' }, { status: 500 });
   }
 }
@@ -167,7 +167,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: 'Model deleted successfully' });
   } catch (error) {
-    console.error('Error deleting model:', error);
+    console.error('Error deleting model:', String(error));
     return NextResponse.json({ error: 'Failed to delete model' }, { status: 500 });
   }
 }

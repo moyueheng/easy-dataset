@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
     const taskConfig = await getTaskConfig(projectId);
     return NextResponse.json(taskConfig);
   } catch (error) {
-    console.error('Failed to obtain task configuration:', error);
+    console.error('Failed to obtain task configuration:', String(error));
     return NextResponse.json({ error: 'Failed to obtain task configuration' }, { status: 500 });
   }
 }
@@ -72,7 +72,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ message: 'Task configuration updated successfully' });
   } catch (error) {
-    console.error('Failed to update task configuration:', error);
+    console.error('Failed to update task configuration:', String(error));
     return NextResponse.json({ error: 'Failed to update task configuration' }, { status: 500 });
   }
 }
@@ -113,7 +113,7 @@ export async function POST(request, { params }) {
 
     // 异步启动任务处理
     processTask(newTask.id).catch(err => {
-      console.error(`Task startup failed: ${newTask.id}`, err);
+      console.error(`Task startup failed: ${newTask.id}`, String(err));
     });
 
     return NextResponse.json({
@@ -122,7 +122,7 @@ export async function POST(request, { params }) {
       message: 'Task created successfully'
     });
   } catch (error) {
-    console.error('Failed to create task:', error);
+    console.error('Failed to create task:', String(error));
     return NextResponse.json(
       {
         code: 500,

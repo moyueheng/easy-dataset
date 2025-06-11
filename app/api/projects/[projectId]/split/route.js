@@ -54,7 +54,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({ ...result, tags });
   } catch (error) {
-    console.error('Text split error:', error);
+    console.error('Text split error:', String(error));
     return NextResponse.json({ error: error.message || 'Text split failed' }, { status: 500 });
   }
 }
@@ -82,7 +82,7 @@ export async function GET(request, { params }) {
       tags
     });
   } catch (error) {
-    console.error('Failed to get text chunks:', error);
+    console.error('Failed to get text chunks:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to get text chunks' }, { status: 500 });
   }
 }

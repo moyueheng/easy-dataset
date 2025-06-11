@@ -75,11 +75,12 @@
     "next-themes": "^0.2.1",
     "ollama-ai-provider": "^1.2.0",
     "opener": "^1.5.2",
-    "pdf2md-js": "^1.0.7",
+    "pdf2md-js": "^1.0.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^15.4.1",
     "react-markdown": "^10.0.1",
+    "sharp": "^0.33.1",
     "sonner": "^2.0.3",
     "turndown": "^7.2.0",
     "zhipu-ai-provider": "^0.1.1"
@@ -131,6 +132,10 @@
       "output": "dist"
     },
     "asar": true,
+    "asarUnpack": [
+      "**/node_modules/sharp/**/*",
+      "**/node_modules/@img/**/*"
+    ],
     "compression": "maximum",
     "mac": {
       "icon": "public/imgs/logo.icns",

@@ -50,7 +50,7 @@ export async function GET(request, { params }) {
       message: '任务列表获取成功'
     });
   } catch (error) {
-    console.error('获取任务列表失败:', error);
+    console.error('获取任务列表失败:', String(error));
     return NextResponse.json(
       {
         code: 500,

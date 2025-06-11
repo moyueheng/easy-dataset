@@ -26,7 +26,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Failed to generate dataset:', error);
+    console.error('Failed to generate dataset:', String(error));
     return NextResponse.json(
       {
         error: error.message || 'Failed to generate dataset'
@@ -69,7 +69,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(datasets);
   } catch (error) {
-    console.error('获取数据集失败:', error);
+    console.error('获取数据集失败:', String(error));
     return NextResponse.json(
       {
         error: error.message || '获取数据集失败'
@@ -152,7 +152,7 @@ export async function PATCH(request) {
       dataset: dataset
     });
   } catch (error) {
-    console.error('Failed to update dataset:', error);
+    console.error('Failed to update dataset:', String(error));
     return NextResponse.json(
       {
         error: error.message || 'Failed to update dataset'

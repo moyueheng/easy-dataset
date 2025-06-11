@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(chunk);
   } catch (error) {
-    console.error('Failed to get text block content:', error);
+    console.error('Failed to get text block content:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to get text block content' }, { status: 500 });
   }
 }
@@ -37,7 +37,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ message: 'Text block deleted successfully' });
   } catch (error) {
-    console.error('Failed to delete text block:', error);
+    console.error('Failed to delete text block:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to delete text block' }, { status: 500 });
   }
 }
@@ -67,7 +67,7 @@ export async function PATCH(request, { params }) {
     let res = await updateChunkById(chunkId, { content });
     return NextResponse.json(res);
   } catch (error) {
-    console.error('编辑文本块失败:', error);
+    console.error('编辑文本块失败:', String(error));
     return NextResponse.json({ error: error.message || '编辑文本块失败' }, { status: 500 });
   }
 }

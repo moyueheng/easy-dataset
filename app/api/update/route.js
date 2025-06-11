@@ -60,7 +60,7 @@ export async function POST() {
       });
     });
   } catch (error) {
-    console.error('Failed to execute update:', error);
+    console.error('Failed to execute update:', String(error));
     return NextResponse.json(
       {
         success: false,

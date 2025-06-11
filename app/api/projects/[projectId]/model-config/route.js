@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
     let project = await getProject(projectId);
     return NextResponse.json({ data: modelConfigList, defaultModelConfigId: project.defaultModelConfigId });
   } catch (error) {
-    console.error('Error obtaining model configuration:', error);
+    console.error('Error obtaining model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to obtain model configuration' }, { status: 500 });
   }
 }
@@ -66,7 +66,7 @@ export async function POST(request, { params }) {
 
     return NextResponse.json(res);
   } catch (error) {
-    console.error('Error updating model configuration:', error);
+    console.error('Error updating model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to update model configuration' }, { status: 500 });
   }
 }

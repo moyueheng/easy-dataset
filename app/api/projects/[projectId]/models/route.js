@@ -41,7 +41,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(modelConfig);
   } catch (error) {
-    console.error('Error obtaining model configuration:', error);
+    console.error('Error obtaining model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to obtain model configuration' }, { status: 500 });
   }
 }
@@ -83,7 +83,7 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ message: 'Model configuration updated successfully' });
   } catch (error) {
-    console.error('Error updating model configuration:', error);
+    console.error('Error updating model configuration:', String(error));
     return NextResponse.json({ error: 'Failed to update model configuration' }, { status: 500 });
   }
 }

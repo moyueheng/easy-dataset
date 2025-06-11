@@ -20,7 +20,7 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({ success: true, message: 'Delete successful' });
   } catch (error) {
-    console.error('Delete failed:', error);
+    console.error('Delete failed:', String(error));
     return NextResponse.json({ error: error.message || 'Delete failed' }, { status: 500 });
   }
 }

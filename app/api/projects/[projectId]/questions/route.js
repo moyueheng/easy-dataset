@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json(questions);
   } catch (error) {
-    console.error('Failed to get questions:', error);
+    console.error('Failed to get questions:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to get questions' }, { status: 500 });
   }
 }
@@ -79,7 +79,7 @@ export async function POST(request, { params }) {
     // 返回成功响应
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to create question:', error);
+    console.error('Failed to create question:', String(error));
     return NextResponse.json({ error: error.message || 'Failed to create question' }, { status: 500 });
   }
 }
@@ -93,7 +93,7 @@ export async function PUT(request) {
     // 返回更新后的问题数据
     return NextResponse.json(data);
   } catch (error) {
-    console.error('更新问题失败:', error);
+    console.error('更新问题失败:', String(error));
     return NextResponse.json({ error: error.message || '更新问题失败' }, { status: 500 });
   }
 }

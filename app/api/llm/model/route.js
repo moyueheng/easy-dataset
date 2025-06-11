@@ -28,7 +28,8 @@ export async function POST(request) {
     const existingModelIds = models.map(model => model.modelId);
     const diffModels = newModels.filter(item => !existingModelIds.includes(item.modelId));
     if (diffModels.length > 0) {
-      return NextResponse.json(await createLlmModels(diffModels));
+      // return NextResponse.json(await createLlmModels(diffModels));
+      return NextResponse.json({ message: 'No new models to insert' }, { status: 200 });
     } else {
       return NextResponse.json({ message: 'No new models to insert' }, { status: 200 });
     }

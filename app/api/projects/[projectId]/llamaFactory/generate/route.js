@@ -91,7 +91,7 @@ export async function POST(request, { params }) {
       ]
     });
   } catch (error) {
-    console.error('Error generating Llama Factory config:', error);
+    console.error('Error generating Llama Factory config:', String(error));
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
