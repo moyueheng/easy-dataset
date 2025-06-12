@@ -200,6 +200,7 @@
     "deleteConfirmTitle": "Confirm Delete"
   },
   "textSplit": {
+    "fileList": "File List",
     "autoGenerateQuestions": "Auto Generate",
     "autoGenerateQuestionsTip": "Create background batch processing tasks: automatically query text blocks pending question generation and extract questions.",
     "exportChunks": "Export Chunks",
