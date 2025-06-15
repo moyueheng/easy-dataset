@@ -65,10 +65,18 @@ export async function POST(request, { params }) {
       };
     });
 
-    // 执行批量更新
-    const updatePromises = updates.map(update => prisma.chunks.update(update));
-
-    await Promise.all(updatePromises);
+    async function processBatches(items, batchSize, processFn) {
+      const results = [];
+      for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(processFn));
+        results.push(...batchResults);
+      }
+      return results;
+    }
+    
+    const BATCH_SIZE = 50; // 每批处理 50 个
+    await processBatches(updates, BATCH_SIZE, (update) => prisma.chunks.update(update));
 
     // 记录操作日志（可选）
     console.log(`批量编辑文本块完成: 项目 ${projectId}, 更新了 ${chunksToUpdate.length} 个文本块`);
