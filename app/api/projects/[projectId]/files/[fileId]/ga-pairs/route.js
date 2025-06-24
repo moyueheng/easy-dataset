@@ -303,7 +303,7 @@ async function getFileContent(projectId, fileName) {
     const fs = await import('fs');
 
     const projectRoot = await getProjectRoot();
-    const filePath = path.join(projectRoot, projectId, 'files', fileName);
+    const filePath = path.join(projectRoot, projectId, 'files', fileName.replace('.pdf', '.md'));
 
     return await fs.promises.readFile(filePath, 'utf8');
   } catch (error) {
