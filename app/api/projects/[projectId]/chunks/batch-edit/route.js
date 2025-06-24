@@ -15,11 +15,11 @@ export async function POST(request, { params }) {
 
     // 验证参数
     if (!position || !content || !chunkIds || !Array.isArray(chunkIds) || chunkIds.length === 0) {
-      return NextResponse.json({ error: '缺少必要参数：position, content, chunkIds' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required parameters: position, content, chunkIds' }, { status: 400 });
     }
 
     if (!['start', 'end'].includes(position)) {
-      return NextResponse.json({ error: 'position 参数必须是 "start" 或 "end"' }, { status: 400 });
+      return NextResponse.json({ error: 'Position must be "start" or "end"' }, { status: 400 });
     }
 
     // 验证项目权限（获取要编辑的文本块）
@@ -36,11 +36,11 @@ export async function POST(request, { params }) {
     });
 
     if (chunksToUpdate.length === 0) {
-      return NextResponse.json({ error: '未找到要编辑的文本块或无权限访问' }, { status: 404 });
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
     if (chunksToUpdate.length !== chunkIds.length) {
-      return NextResponse.json({ error: '部分文本块不存在或无权限访问' }, { status: 400 });
+      return NextResponse.json({ error: 'Some chunks not found' }, { status: 400 });
     }
 
     // 准备更新数据
@@ -79,20 +79,20 @@ export async function POST(request, { params }) {
     await processBatches(updates, BATCH_SIZE, update => prisma.chunks.update(update));
 
     // 记录操作日志（可选）
-    console.log(`批量编辑文本块完成: 项目 ${projectId}, 更新了 ${chunksToUpdate.length} 个文本块`);
+    console.log(`Successfully updated ${chunksToUpdate.length} chunks`);
 
     return NextResponse.json({
       success: true,
       updatedCount: chunksToUpdate.length,
-      message: `成功更新了 ${chunksToUpdate.length} 个文本块`
+      message: `Successfully updated ${chunksToUpdate.length} chunks`
     });
   } catch (error) {
     console.error('批量编辑文本块失败:', error);
 
     return NextResponse.json(
       {
-        error: '批量编辑文本块失败',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: 'Batch edit chunks failed',
+        details: error.message
       },
       { status: 500 }
     );
