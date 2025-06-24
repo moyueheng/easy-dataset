@@ -47,7 +47,8 @@ export default function FileList({
   projectId,
   setPageLoading,
   currentPage = 1,
-  onPageChange
+  onPageChange,
+  isFullscreen = false // 新增参数，用于控制是否处于全屏状态
 }) {
   const { t } = useTranslation();
 
@@ -434,45 +435,86 @@ export default function FileList({
         </Box>
       ) : (
         <>
-          <List sx={{ maxHeight: '200px', overflow: 'auto', width: '100%' }}>
+          <List
+            sx={{
+              maxHeight: isFullscreen ? 'none' : '200px', // 根据 isFullscreen 控制最大高度
+              overflow: 'auto',
+              width: '100%'
+            }}
+            dense // 使列表项更紧凑，减少高度
+          >
             {files?.data?.map((file, index) => (
               <Box key={index}>
                 <ListItem
-                  secondaryAction={
-                    <Box sx={{ display: 'flex' }}>
-                      <Checkbox
-                        sx={{ mr: 1 }}
-                        checked={array.includes(String(file.id))}
-                        onChange={e => handleCheckboxChange(file.id, e.target.checked)}
-                      />
-                      <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
-                      {/* <Tooltip title={t('textSplit.viewDetails')}>
-                      <IconButton color="primary" onClick={() => handleViewContent(file.id)}>
-                        <VisibilityIcon />
-                      </IconButton>
-                    </Tooltip> */}
-                      <Tooltip title={t('textSplit.download')}>
-                        <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
-                          <Download />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={t('textSplit.deleteFile')}>
-                        <IconButton color="error" onClick={() => onDeleteFile(file.id, file.fileName)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  }
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexWrap: 'nowrap',
+                    pr: 0 // 移除右侧内边距，便于自定义操作区域位置
+                  }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <FileIcon color="primary" sx={{ mr: 1 }} />
+                  {/* 文件信息区域 */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      overflow: 'hidden', // 隐藏溢出内容
+                      maxWidth: '70%', // 限制文件信息区域最大宽度
+                      flexGrow: 1,
+                      mr: 2 // 与操作区域保持间距
+                    }}
+                  >
+                    <FileIcon color="primary" sx={{ mr: 1, flexShrink: 0 }} />
                     <Tooltip title={`${file.fileName}（${t('textSplit.viewDetails')}）`}>
                       <ListItemText
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', overflow: 'hidden' }}
                         onClick={() => handleViewContent(file.id)}
-                        primary={file.fileName}
-                        secondary={`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
+                        primary={
+                          <Typography
+                            noWrap // 文本不换行并显示省略号
+                            variant="body1"
+                            component="div"
+                          >
+                            {file.fileName}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography
+                            noWrap // 文本不换行并显示省略号
+                            variant="body2"
+                            color="textSecondary"
+                            component="div"
+                          >
+                            {`${formatFileSize(file.size)} · ${new Date(file.createAt).toLocaleString()}`}
+                          </Typography>
+                        }
                       />
+                    </Tooltip>
+                  </Box>
+
+                  {/* 操作按钮区域 */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexShrink: 0, // 防止操作区域被压缩
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Checkbox
+                      sx={{ ml: 1 }}
+                      checked={array.includes(String(file.id))}
+                      onChange={e => handleCheckboxChange(file.id, e.target.checked)}
+                    />
+                    <GaPairsIndicator projectId={projectId} fileId={file.id} fileName={file.fileName} />
+                    <Tooltip title={t('textSplit.download')}>
+                      <IconButton color="primary" onClick={() => handleDownload(file.id, file.fileName)}>
+                        <Download />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('textSplit.deleteFile')}>
+                      <IconButton color="error" onClick={() => onDeleteFile(file.id, file.fileName)}>
+                        <DeleteIcon />
+                      </IconButton>
                     </Tooltip>
                   </Box>
                 </ListItem>

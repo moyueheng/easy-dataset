@@ -223,10 +223,10 @@ export async function POST(request, { params }) {
     //获取文件扩展名
     const ext = path.extname(filePath);
 
-    let res = await checkUploadFileInfoByMD5(projectId, md5);
-    if (res) {
-      return NextResponse.json({ error: `【${fileName}】该文件已在此项目中存在` }, { status: 400 });
-    }
+    // let res = await checkUploadFileInfoByMD5(projectId, md5);
+    // if (res) {
+    //   return NextResponse.json({ error: `【${fileName}】该文件已在此项目中存在` }, { status: 400 });
+    // }
 
     let fileInfo = await createUploadFileInfo({
       projectId,
