@@ -31,7 +31,7 @@ export default function ChunkListHeader({
 
     try {
       // 调用创建任务接口
-      const response = await axios.post(`/api/projects/${projectId}/tasks/list`, {
+      const response = await axios.post(`/api/projects/${projectId}/tasks`, {
         taskType: 'question-generation',
         modelInfo: selectedModel,
         language: i18n.language,
