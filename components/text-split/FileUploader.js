@@ -48,10 +48,11 @@ export default function FileUploader({
   const [visionModels, setVisionModels] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const [searchFileName, setSearchFileName] = useState('');
 
   useEffect(() => {
     fetchUploadedFiles();
-  }, [currentPage]);
+  }, [currentPage, searchFileName]);
 
   /**
    * 处理 PDF 处理方式选择
@@ -79,11 +80,12 @@ export default function FileUploader({
    * 获取上传的文件列表
    * @param {*} page
    * @param {*} size
+   * @param {*} fileName
    */
-  const fetchUploadedFiles = async (page = currentPage, size = pageSize) => {
+  const fetchUploadedFiles = async (page = currentPage, size = pageSize, fileName = searchFileName) => {
     try {
       setLoading(true);
-      const data = await fileApi.getFiles({ projectId, page, size, t });
+      const data = await fileApi.getFiles({ projectId, page, size, fileName, t });
       setUploadedFiles(data);
 
       setIsFirstUpload(data.total === 0);
@@ -307,7 +309,16 @@ export default function FileUploader({
                 onDeleteFile={openDeleteConfirm}
                 projectId={projectId}
                 currentPage={currentPage}
-                onPageChange={page => setCurrentPage(page)}
+                onPageChange={(page, fileName) => {
+                  if (fileName !== undefined) {
+                    // 搜索时更新搜索关键词和页码
+                    setSearchFileName(fileName);
+                    setCurrentPage(page);
+                  } else {
+                    // 翻页时只更新页码
+                    setCurrentPage(page);
+                  }
+                }}
               />
             </Grid>
           </Grid>

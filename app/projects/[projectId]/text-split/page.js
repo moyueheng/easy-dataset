@@ -52,6 +52,7 @@ export default function TextSplitPage({ params }) {
   const { taskFileProcessing, task } = useFileProcessingStatus();
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState({ data: [], total: 0 });
+  const [searchFileName, setSearchFileName] = useState('');
 
   // 上传区域的展开/折叠状态
   const [uploaderExpanded, setUploaderExpanded] = useState(true);
@@ -64,10 +65,19 @@ export default function TextSplitPage({ params }) {
     useChunks(projectId, questionFilter);
 
   // 获取文件列表
-  const fetchUploadedFiles = async () => {
+  const fetchUploadedFiles = async (page = currentPage, fileName = searchFileName) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/projects/${projectId}/files?page=${currentPage}&size=10`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: '10'
+      });
+
+      if (fileName && fileName.trim()) {
+        params.append('fileName', fileName.trim());
+      }
+
+      const response = await axios.get(`/api/projects/${projectId}/files?${params}`);
       setUploadedFiles(response.data);
     } catch (error) {
       console.error('Error fetching files:', error);
@@ -132,7 +142,7 @@ export default function TextSplitPage({ params }) {
   useEffect(() => {
     fetchChunks('all');
     fetchUploadedFiles();
-  }, [fetchChunks, taskFileProcessing, currentPage]);
+  }, [fetchChunks, taskFileProcessing, currentPage, searchFileName]);
 
   /**
    * 对上传后的文件进行处理
@@ -307,7 +317,16 @@ export default function TextSplitPage({ params }) {
               onDeleteFile={(fileId, fileName) => openDeleteConfirm(fileId, fileName)}
               projectId={projectId}
               currentPage={currentPage}
-              onPageChange={page => setCurrentPage(page)}
+              onPageChange={(page, fileName) => {
+                if (fileName !== undefined) {
+                  // 搜索时更新搜索关键词和页码
+                  setSearchFileName(fileName);
+                  setCurrentPage(page);
+                } else {
+                  // 翻页时只更新页码
+                  setCurrentPage(page);
+                }
+              }}
               isFullscreen={true} // 在对话框中移除高度限制
             />
           </Box>
