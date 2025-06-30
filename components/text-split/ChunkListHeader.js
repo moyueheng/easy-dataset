@@ -1,12 +1,15 @@
 'use client';
 
-import { Box, Typography, Checkbox, Button, Select, MenuItem, Tooltip } from '@mui/material';
+import { Box, Typography, Checkbox, Button, Select, MenuItem, Tooltip, Menu, IconButton } from '@mui/material';
 import QuizIcon from '@mui/icons-material/Quiz';
 import DownloadIcon from '@mui/icons-material/Download';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 
 export default function ChunkListHeader({
   projectId,
@@ -21,6 +24,32 @@ export default function ChunkListHeader({
   selectedModel = {}
 }) {
   const { t, i18n } = useTranslation();
+
+  // 添加更多菜单的状态和锚点
+  const [moreMenuAnchorEl, setMoreMenuAnchorEl] = useState(null);
+  const isMoreMenuOpen = Boolean(moreMenuAnchorEl);
+
+  // 打开更多菜单
+  const handleMoreMenuClick = event => {
+    setMoreMenuAnchorEl(event.currentTarget);
+  };
+
+  // 关闭更多菜单
+  const handleMoreMenuClose = () => {
+    setMoreMenuAnchorEl(null);
+  };
+
+  // 处理批量编辑，关闭菜单并调用原有函数
+  const handleBatchEdit = () => {
+    handleMoreMenuClose();
+    onBatchEditChunks();
+  };
+
+  // 处理导出文本块，关闭菜单并调用原有函数
+  const handleExport = () => {
+    handleMoreMenuClose();
+    handleExportChunks();
+  };
 
   // 创建自动提取问题任务
   const handleCreateAutoQuestionTask = async () => {
@@ -85,7 +114,16 @@ export default function ChunkListHeader({
   };
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '30px' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        justifyContent: 'space-between',
+        alignItems: { xs: 'flex-start', md: 'center' },
+        gap: 2,
+        mb: 3
+      }}
+    >
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <Checkbox
           checked={selectedChunks.length === totalChunks}
@@ -98,63 +136,100 @@ export default function ChunkListHeader({
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          flexWrap: 'wrap',
+          gap: 1.5,
+          width: { xs: '100%', md: 'auto' }
+        }}
+      >
         <Select value={questionFilter} onChange={setQuestionFilter} size="small" sx={{ minWidth: 150 }}>
           <MenuItem value="all">{t('textSplit.allChunks')}</MenuItem>
           <MenuItem value="generated">{t('textSplit.generatedQuestions2')}</MenuItem>
           <MenuItem value="ungenerated">{t('textSplit.ungeneratedQuestions')}</MenuItem>
         </Select>
 
-        <Tooltip title={t('batchEdit.batchEditTooltip', { defaultValue: '批量编辑选中的文本块' })}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            mt: { xs: 1, sm: 0 },
+            width: { xs: '100%', sm: 'auto' }
+          }}
+        >
           <Button
-            variant="outlined"
+            variant="contained"
             color="primary"
-            startIcon={<AutoFixHighIcon />}
+            startIcon={<QuizIcon />}
             disabled={selectedChunks.length === 0}
-            onClick={onBatchEditChunks}
-            sx={{ mr: 1 }}
+            onClick={onBatchGenerateQuestions}
+            size="medium"
+            sx={{ minWidth: { xs: '48%', sm: 'auto' } }}
           >
-            {t('batchEdit.batchEdit', { defaultValue: '批量编辑' })}
+            {t('textSplit.batchGenerateQuestions')}
           </Button>
-        </Tooltip>
 
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<QuizIcon />}
-          disabled={selectedChunks.length === 0}
-          onClick={onBatchGenerateQuestions}
-          sx={{ mr: 1 }}
-        >
-          {t('textSplit.batchGenerateQuestions')}
-        </Button>
-
-        <Tooltip
-          title={t('textSplit.autoGenerateQuestionsTip', {
-            defaultValue: '创建后台批量处理任务：自动查询待生成问题的文本块并提取问题'
-          })}
-        >
-          <Button
-            variant="outlined"
-            color="secondary"
-            startIcon={<AutoFixHighIcon />}
-            onClick={() => handleCreateAutoQuestionTask()}
-            disabled={!projectId || !selectedModel?.id}
-            sx={{ mr: 1 }}
+          <Tooltip
+            title={t('textSplit.autoGenerateQuestionsTip', {
+              defaultValue: '创建后台批量处理任务：自动查询待生成问题的文本块并提取问题'
+            })}
           >
-            {t('textSplit.autoGenerateQuestions')}
-          </Button>
-        </Tooltip>
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<AutoFixHighIcon />}
+              onClick={() => handleCreateAutoQuestionTask()}
+              disabled={!projectId || !selectedModel?.id}
+              size="medium"
+              sx={{ minWidth: { xs: '48%', sm: 'auto' } }}
+            >
+              {t('textSplit.autoGenerateQuestions')}
+            </Button>
+          </Tooltip>
 
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<DownloadIcon />}
-          disabled={chunks.length === 0}
-          onClick={handleExportChunks}
-        >
-          {t('textSplit.exportChunks', { defaultValue: '导出文本块' })}
-        </Button>
+          {/* 更多菜单按钮 */}
+          <Tooltip title={t('common.more', { defaultValue: '更多操作' })}>
+            <IconButton
+              onClick={handleMoreMenuClick}
+              color="primary"
+              size="medium"
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider'
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </Tooltip>
+
+          {/* 更多操作下拉菜单 */}
+          <Menu
+            anchorEl={moreMenuAnchorEl}
+            open={isMoreMenuOpen}
+            onClose={handleMoreMenuClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right'
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right'
+            }}
+          >
+            <MenuItem onClick={handleBatchEdit} disabled={selectedChunks.length === 0}>
+              <EditIcon fontSize="small" sx={{ mr: 1 }} />
+              {t('batchEdit.batchEdit', { defaultValue: '批量编辑' })}
+            </MenuItem>
+            <MenuItem onClick={handleExport} disabled={chunks.length === 0}>
+              <DownloadIcon fontSize="small" sx={{ mr: 1 }} />
+              {t('textSplit.exportChunks', { defaultValue: '导出文本块' })}
+            </MenuItem>
+          </Menu>
+        </Box>
       </Box>
     </Box>
   );
