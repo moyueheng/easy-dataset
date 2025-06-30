@@ -202,6 +202,7 @@
     "openDirectory": "打开项目目录"
   },
   "textSplit": {
+    "dragToUpload": "拖拽文件到此处上传",
     "fileList": "文献列表",
     "autoGenerateQuestions": "自动提取问题",
     "autoGenerateQuestionsTip": "创建后台批量处理任务：自动查询待生成问题的文本块并提取问题",
