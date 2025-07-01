@@ -220,6 +220,7 @@
     "title": "Texts",
     "uploadNewDocument": "Upload New Document",
     "selectFile": "Select File",
+    "dragToUpload": "Drag files here to upload",
     "markdownOnly": "Currently only supports Markdown (.md) format files",
     "supportedFormats": "Supported formats: .pdf .md, .txt, .docx",
     "uploadAndProcess": "Upload and Process",

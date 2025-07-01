@@ -222,6 +222,7 @@
     "title": "文献处理",
     "uploadNewDocument": "上传新文献",
     "selectFile": "选择文件（支持多个）",
+    "dragToUpload": "拖拽文件到此处上传",
     "markdownOnly": "目前仅支持上传 Markdown (.md) 格式文件（建议上传同一领域的文献）",
     "supportedFormats": "支持的格式: .pdf .md, .txt, .docx（建议上传同一领域的文献）",
     "uploadAndProcess": "上传并处理文件",

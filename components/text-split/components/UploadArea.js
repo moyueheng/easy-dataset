@@ -89,17 +89,27 @@ export default function UploadArea({
             left: 0,
             width: '100%',
             height: '100%',
-            bgcolor: alpha(theme.palette.primary.main, 0.15),
+            bgcolor: alpha(theme.palette.background.paper, 0.9),
+            backdropFilter: 'blur(4px)',
             zIndex: 10,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
             borderRadius: 2,
+            border: `2px dashed ${theme.palette.primary.main}`,
           }}
         >
-          <Typography variant="h6" color="primary">
-            {t('textSplit.dragToUpload', { defaultValue: '拖拽文件到此处上传' })}
+          <Typography
+            variant="h5"
+            color="primary"
+            sx={{
+              fontWeight: 600,
+              textShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.2)}`,
+              textAlign: 'center'
+            }}
+          >
+            {t('textSplit.dragToUpload')}
           </Typography>
         </Box>
       )}
