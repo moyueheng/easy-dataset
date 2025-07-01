@@ -39,6 +39,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { useRouter } from 'next/navigation';
 import ExportDatasetDialog from '@/components/ExportDatasetDialog';
 import { useTranslation } from 'react-i18next';
@@ -521,9 +522,12 @@ export default function DatasetsPage({ params }) {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery);
+  const [searchField, setSearchField] = useState('question'); // 新增：筛选字段，默认为问题
   const [exportDialog, setExportDialog] = useState({ open: false });
   const [selectedIds, setselectedIds] = useState([]);
   const [filterConfirmed, setFilterConfirmed] = useState('all');
+  const [filterHasCot, setFilterHasCot] = useState('all');
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
   const { t } = useTranslation();
   // 删除进度状态
   const [deleteProgress, setDeteleProgress] = useState({
@@ -547,7 +551,7 @@ export default function DatasetsPage({ params }) {
     try {
       setLoading(true);
       const response = await axios.get(
-        `/api/projects/${projectId}/datasets?page=${page}&size=${rowsPerPage}&status=${filterConfirmed}&input=${searchQuery}`
+        `/api/projects/${projectId}/datasets?page=${page}&size=${rowsPerPage}&status=${filterConfirmed}&input=${searchQuery}&field=${searchField}&hasCot=${filterHasCot}`
       );
       setDatasets(response.data);
     } catch (error) {
@@ -563,7 +567,7 @@ export default function DatasetsPage({ params }) {
 
   useEffect(() => {
     getDatasetsList();
-  }, [projectId, page, rowsPerPage, filterConfirmed, debouncedSearchQuery]);
+  }, [projectId, page, rowsPerPage, filterConfirmed, debouncedSearchQuery, searchField, filterHasCot]);
 
   // 处理页码变化
   const handlePageChange = (event, newPage) => {
@@ -951,26 +955,21 @@ ${answer}`
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Select
-              value={filterConfirmed}
-              onChange={e => {
-                setFilterConfirmed(e.target.value);
-                setPage(1);
-              }}
-              displayEmpty
-              sx={{ width: 150 }}
+            <Button
+              variant="outlined"
+              onClick={() => setFilterDialogOpen(true)}
+              startIcon={<FilterListIcon />}
+              sx={{ borderRadius: 2 }}
             >
-              <MenuItem value="all">{t('datasets.filterAll')}</MenuItem>
-              <MenuItem value="confirmed">{t('datasets.filterConfirmed')}</MenuItem>
-              <MenuItem value="unconfirmed">{t('datasets.filterUnconfirmed')}</MenuItem>
-            </Select>
+              {t('datasets.moreFilters')}
+            </Button>
             <Paper
               component="form"
               sx={{
                 p: '2px 4px',
                 display: 'flex',
                 alignItems: 'center',
-                width: 300,
+                width: 400,
                 borderRadius: 2
               }}
             >
@@ -985,6 +984,27 @@ ${answer}`
                   setSearchQuery(e.target.value);
                   setPage(1);
                 }}
+                endAdornment={
+                  <Select
+                    value={searchField}
+                    onChange={e => {
+                      setSearchField(e.target.value);
+                      setPage(1);
+                    }}
+                    variant="standard"
+                    sx={{
+                      minWidth: 90,
+                      '& .MuiInput-underline:before': { borderBottom: 'none' },
+                      '& .MuiInput-underline:after': { borderBottom: 'none' },
+                      '& .MuiInput-underline:hover:not(.Mui-disabled):before': { borderBottom: 'none' }
+                    }}
+                    disableUnderline
+                  >
+                    <MenuItem value="question">{t('datasets.fieldQuestion')}</MenuItem>
+                    <MenuItem value="answer">{t('datasets.fieldAnswer')}</MenuItem>
+                    <MenuItem value="cot">{t('datasets.fieldCOT')}</MenuItem>
+                  </Select>
+                }
               />
             </Paper>
             <Button
@@ -1044,13 +1064,75 @@ ${answer}`
 
       <DeleteConfirmDialog
         open={deleteDialog.open}
-        batch={deleteDialog.batch}
-        datasets={deleteDialog.datasets}
-        progress={deleteProgress}
-        deleting={deleteDialog.deleting}
+        datasets={deleteDialog.datasets || []}
         onClose={handleCloseDeleteDialog}
         onConfirm={handleDeleteConfirm}
+        batch={deleteDialog.batch}
+        progress={deleteProgress}
+        deleting={deleteDialog.deleting}
       />
+      <ExportDatasetDialog open={exportDialog.open} onClose={handleCloseExportDialog} onExport={handleExportDatasets} />
+
+      {/* 更多筛选对话框 */}
+      <Dialog open={filterDialogOpen} onClose={() => setFilterDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>{t('datasets.filtersTitle')}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3, mt: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              {t('datasets.filterConfirmationStatus')}
+            </Typography>
+            <Select
+              value={filterConfirmed}
+              onChange={e => setFilterConfirmed(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value="all">{t('datasets.filterAll')}</MenuItem>
+              <MenuItem value="confirmed">{t('datasets.filterConfirmed')}</MenuItem>
+              <MenuItem value="unconfirmed">{t('datasets.filterUnconfirmed')}</MenuItem>
+            </Select>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              {t('datasets.filterCotStatus')}
+            </Typography>
+            <Select
+              value={filterHasCot}
+              onChange={e => setFilterHasCot(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{ mt: 1 }}
+            >
+              <MenuItem value="all">{t('datasets.filterAll')}</MenuItem>
+              <MenuItem value="yes">{t('datasets.filterHasCot')}</MenuItem>
+              <MenuItem value="no">{t('datasets.filterNoCot')}</MenuItem>
+            </Select>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setFilterConfirmed('all');
+              setFilterHasCot('all');
+              getDatasetsList();
+            }}
+          >
+            {t('datasets.resetFilters')}
+          </Button>
+          <Button
+            onClick={() => {
+              setFilterDialogOpen(false);
+              setPage(1); // 重置到第一页
+              getDatasetsList();
+            }}
+            variant="contained"
+          >
+            {t('datasets.applyFilters')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbar.open}
