@@ -117,26 +117,69 @@ https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 
 4. 打开浏览器并访问 `http://localhost:1717`
 
+### 使用官方 Docker 镜像
+
+1. 克隆仓库：
+
+```bash
+git clone https://github.com/ConardLi/easy-dataset.git
+cd easy-dataset
+```
+
+2. 更改 `docker-compose.yml` 文件：
+
+```yml
+services:
+  easy-dataset:
+    image: ghcr.io/conardli/easy-dataset
+    container_name: easy-dataset
+    ports:
+      - '1717:1717'
+    volumes:
+      - ${LOCAL_DB_PATH}:/app/local-db
+      - ${LOCAL_PRISMA_PATH}:/app/prisma
+    restart: unless-stopped
+```
+
+> **注意：** 请将 `{YOUR_LOCAL_DB_PATH}`、`{LOCAL_PRISMA_PATH}` 替换为你希望存储本地数据库的实际路径，建议直接使用当前代码仓库目录下的 `local-db` 和 `prisma` 文件夹，这样可以和 NPM 启动时的数据库路径保持一致。
+
+3. 使用 docker-compose 启动
+
+```bash
+docker-compose up -d
+```
+
+4. 打开浏览器并访问 `http://localhost:1717`
+
 ### 使用本地 Dockerfile 构建
 
 如果你想自行构建镜像，可以使用项目根目录中的 Dockerfile：
 
 1. 克隆仓库：
-   ```bash
-   git clone https://github.com/ConardLi/easy-dataset.git
-   cd easy-dataset
-   ```
+
+```bash
+git clone https://github.com/ConardLi/easy-dataset.git
+cd easy-dataset
+```
+
 2. 构建 Docker 镜像：
-   ```bash
-   docker build -t easy-dataset .
-   ```
+
+```bash
+docker build -t easy-dataset .
+```
+
 3. 运行容器：
 
-   ```bash
-   docker run -d -p 1717:1717 -v {YOUR_LOCAL_DB_PATH}:/app/local-db --name easy-dataset easy-dataset
-   ```
+```bash
+docker run -d \
+  -p 1717:1717 \
+  -v {YOUR_LOCAL_DB_PATH}:/app/local-db \
+  -v {LOCAL_PRISMA_PATH}:/app/prisma \
+  --name easy-dataset \
+  easy-dataset
+```
 
-   **注意：** 请将 `{YOUR_LOCAL_DB_PATH}` 替换为你希望存储本地数据库的实际路径。
+> **注意：** 请将 `{YOUR_LOCAL_DB_PATH}`、`{LOCAL_PRISMA_PATH}` 替换为你希望存储本地数据库的实际路径，建议直接使用当前代码仓库目录下的 `local-db` 和 `prisma` 文件夹，这样可以和 NPM 启动时的数据库路径保持一致。
 
 4. 打开浏览器，访问 `http://localhost:1717`
 
@@ -209,66 +252,17 @@ https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 4. 根据需要添加自定义系统提示；
 5. 导出您的数据集
 
-## 项目结构
-
-```
-easy-dataset/
-├── app/                                # Next.js 应用目录
-│   ├── api/                            # API 路由
-│   │   ├── llm/                        # LLM API 集成
-│   │   │   ├── ollama/                 # Ollama API 集成
-│   │   │   └── openai/                 # OpenAI API 集成
-│   │   ├── projects/                   # 项目管理 API
-│   │   │   ├── [projectId]/            # 项目特定操作
-│   │   │   │   ├── chunks/             # 文本块操作
-│   │   │   │   ├── datasets/           # 数据集生成和管理
-│   │   │   │   ├── generate-questions/ # 批量问题生成
-│   │   │   │   ├── questions/          # 问题管理
-│   │   │   │   └── split/              # 文本分割操作
-│   │   │   └── user/                   # 用户特定项目操作
-│   ├── projects/                       # 前端项目页面
-│   │   └── [projectId]/                # 项目特定页面
-│   │       ├── datasets/               # 数据集管理 UI
-│   │       ├── questions/              # 问题管理 UI
-│   │       ├── settings/               # 项目设置 UI
-│   │       └── text-split/             # 文本处理 UI
-│   └── page.js                         # 主页
-├── components/                         # React 组件
-│   ├── datasets/                       # 数据集相关组件
-│   ├── home/                           # 主页组件
-│   ├── projects/                       # 项目管理组件
-│   ├── questions/                      # 问题管理组件
-│   └── text-split/                     # 文本处理组件
-├── lib/                                # 核心库和工具
-│   ├── db/                             # 数据库操作
-│   ├── i18n/                           # 国际化
-│   ├── llm/                            # LLM 集成
-│   │   ├── common/                     # 通用 LLM 工具
-│   │   ├── core/                       # 核心 LLM 客户端
-│   │   └── prompts/                    # 提示词模板
-│   │       ├── answer.js               # 答案生成提示词（中文）
-│   │       ├── answerEn.js             # 答案生成提示词（英文）
-│   │       ├── question.js             # 问题生成提示词（中文）
-│   │       ├── questionEn.js           # 问题生成提示词（英文）
-│   │       └── ... 其他提示词
-│   └── text-splitter/                  # 文本分割工具
-├── locales/                            # 国际化资源
-│   ├── en/                             # 英文翻译
-│   └── zh-CN/                          # 中文翻译
-├── public/                             # 静态资源
-│   └── imgs/                           # 图片资源
-└── local-db/                           # 本地文件数据库
-    └── projects/                       # 项目数据存储
-```
-
 ## 文档
 
-- 查看本项目的演示视频：[Easy Dataset 演示视频](https://www.bilibili.com/video/BV1y8QpYGE57/)
 - 有关所有功能和 API 的详细文档，请访问我们的 [文档站点](https://docs.easy-dataset.com/)
+- 查看本项目的演示视频：[Easy Dataset 演示视频](https://www.bilibili.com/video/BV1y8QpYGE57/)
 
-## 社区实践
+## 社区教程
 
 - [Easy Dataset × LLaMA Factory: 让大模型高效学习领域知识](https://buaa-act.feishu.cn/wiki/KY9xwTGs1iqHrRkjXBwcZP9WnL9)
+- [Easy Dataset 使用实战: 如何构建高质量数据集？](https://www.bilibili.com/video/BV1MRMnz1EGW)
+- [Easy Dataset 重点功能更新解读](https://www.bilibili.com/video/BV1fyJhzHEb7/)
+- [大模型微调数据集: 基础知识科普](https://docs.easy-dataset.com/zhi-shi-ke-pu)
 
 ## 贡献
 
