@@ -408,7 +408,7 @@
     "exportOptions": "Export Options",
     "uploadSuccess": "Dataset uploaded successfully to HuggingFace",
     "viewOnHuggingFace": "View on HuggingFace",
-    "noTokenWarning": "HuggingFace Token not found. Please configure it in project settings.",
+    "noTokenWarning": "Hugging Face Token not found. Please configure it in project settings.",
     "goToSettings": "Go to Settings",
     "tokenHelp": "You can get your token from HuggingFace settings page"
   },
@@ -459,6 +459,7 @@
     "fieldQuestion": "Question",
     "fieldAnswer": "Answer",
     "fieldCOT": "COT",
+    "fieldLabel": "Domain Label",
     "moreFilters": "More Filters",
     "filtersTitle": "Filter Options",
     "filterConfirmationStatus": "Confirmation Status",

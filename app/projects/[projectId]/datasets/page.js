@@ -955,14 +955,6 @@ ${answer}`
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => setFilterDialogOpen(true)}
-              startIcon={<FilterListIcon />}
-              sx={{ borderRadius: 2 }}
-            >
-              {t('datasets.moreFilters')}
-            </Button>
             <Paper
               component="form"
               sx={{
@@ -1003,10 +995,19 @@ ${answer}`
                     <MenuItem value="question">{t('datasets.fieldQuestion')}</MenuItem>
                     <MenuItem value="answer">{t('datasets.fieldAnswer')}</MenuItem>
                     <MenuItem value="cot">{t('datasets.fieldCOT')}</MenuItem>
+                    <MenuItem value="questionLabel">{t('datasets.fieldLabel')}</MenuItem>
                   </Select>
                 }
               />
             </Paper>
+            <Button
+              variant="outlined"
+              onClick={() => setFilterDialogOpen(true)}
+              startIcon={<FilterListIcon />}
+              sx={{ borderRadius: 2 }}
+            >
+              {t('datasets.moreFilters')}
+            </Button>
             <Button
               variant="outlined"
               startIcon={<FileDownloadIcon />}

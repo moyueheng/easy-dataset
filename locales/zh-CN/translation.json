@@ -461,6 +461,7 @@
     "fieldQuestion": "问题",
     "fieldAnswer": "回答",
     "fieldCOT": "思维链",
+    "fieldLabel": "领域标签",
     "moreFilters": "更多筛选",
     "filtersTitle": "筛选条件",
     "filterConfirmationStatus": "确认状态",
