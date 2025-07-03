@@ -9,6 +9,8 @@
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/ConardLi/easy-dataset">
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/ConardLi/easy-dataset">
 
+<a href="https://trendshift.io/repositories/13944" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13944" alt="ConardLi%2Feasy-dataset | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 **A powerful tool for creating fine-tuning datasets for Large Language Models**
 
 [简体中文](./README.zh-CN.md) | [English](./README.md)
