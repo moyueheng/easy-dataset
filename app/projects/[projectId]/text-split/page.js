@@ -8,15 +8,12 @@ import {
   Box,
   Tabs,
   Tab,
-  Alert,
-  AlertTitle,
   IconButton,
   Collapse,
   Dialog,
   DialogContent,
   DialogTitle,
-  Typography,
-  Paper
+  Typography
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
