@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getDatasetsById, getDatasetsCounts, getNavigationItems } from '@/lib/db/datasets';
-import { getEncoding } from '@langchain/core/utils/tiktoken';
 
 /**
  * 获取项目的所有数据集
@@ -24,31 +23,7 @@ export async function GET(request, { params }) {
     const datasets = await getDatasetsById(datasetId);
     let counts = await getDatasetsCounts(projectId);
 
-    const tokenCounts = {
-      answerTokens: 0,
-      cotTokens: 0
-    };
-
-    try {
-      if (datasets.answer || datasets.cot) {
-        // 使用 cl100k_base 编码，适用于 gpt-3.5-turbo 和 gpt-4
-        const encoding = await getEncoding('cl100k_base');
-
-        if (datasets.answer) {
-          const tokens = encoding.encode(datasets.answer);
-          tokenCounts.answerTokens = tokens.length;
-        }
-
-        if (datasets.cot) {
-          const tokens = encoding.encode(datasets.cot);
-          tokenCounts.cotTokens = tokens.length;
-        }
-      }
-    } catch (error) {
-      console.error('计算Token数量失败:', String(error));
-    }
-
-    return NextResponse.json({ datasets, ...counts, ...tokenCounts });
+    return NextResponse.json({ datasets, ...counts });
   } catch (error) {
     console.error('获取数据集详情失败:', String(error));
     return NextResponse.json(

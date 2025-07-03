@@ -53,8 +53,12 @@ export async function GET(request, { params }) {
     if (status === 'unconfirmed') confirmed = false;
 
     let selectedAll = searchParams.get('selectedAll');
+    // 获取搜索字段参数
+    const field = searchParams.get('field') || 'question';
+    // 获取思维链筛选参数
+    const hasCot = searchParams.get('hasCot') || 'all';
     if (selectedAll) {
-      let data = await getDatasetsIds(projectId, confirmed, searchParams.get('input'));
+      let data = await getDatasetsIds(projectId, confirmed, searchParams.get('input'), field, hasCot);
       return NextResponse.json(data);
     }
 
@@ -64,7 +68,9 @@ export async function GET(request, { params }) {
       parseInt(searchParams.get('page')),
       parseInt(searchParams.get('size')),
       confirmed,
-      searchParams.get('input')
+      searchParams.get('input'),
+      field, // 传递搜索字段参数
+      hasCot // 传递思维链筛选参数
     );
 
     return NextResponse.json(datasets);

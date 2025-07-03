@@ -19,7 +19,9 @@ import {
   DialogActions,
   FormControlLabel,
   Switch,
-  Pagination
+  Pagination,
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import {
   Visibility as VisibilityIcon,
@@ -28,7 +30,9 @@ import {
   FilePresent as FileIcon,
   Psychology as PsychologyIcon,
   CheckBox as SelectAllIcon,
-  CheckBoxOutlineBlank as DeselectAllIcon
+  CheckBoxOutlineBlank as DeselectAllIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -66,8 +70,43 @@ export default function FileList({
   const [loadingModel, setLoadingModel] = useState(false);
   const [appendMode, setAppendMode] = useState(false);
 
+  // 搜索相关状态
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+
   // 获取当前选中的模型信息
   const selectedModelInfo = useAtomValue(selectedModelInfoAtom);
+
+  // 后端搜索功能
+  const handleSearch = async searchValue => {
+    if (typeof onPageChange === 'function') {
+      setSearchLoading(true);
+      try {
+        // 调用父组件的页面变更函数，传递搜索参数
+        await onPageChange(1, searchValue); // 搜索时重置到第一页
+      } catch (error) {
+        console.error('搜索失败:', error);
+      } finally {
+        setSearchLoading(false);
+      }
+    }
+  };
+
+  // 防抖搜索
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchTerm);
+    }, 500); // 500ms 防抖
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // 清空搜索
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    // 清空搜索时立即触发搜索
+    handleSearch('');
+  };
 
   const handleCheckboxChange = (fileId, isChecked) => {
     setArray(prevArray => {
@@ -378,47 +417,97 @@ export default function FileList({
         overflow: 'hidden'
       }}
     >
-      {/* 修改标题部分，添加批量生成按钮 */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="subtitle1">{t('textSplit.uploadedDocuments', { count: files.total })}</Typography>
+      {/* 标题和按钮区域 */}
+      <Box sx={{ mb: 2 }}>
+        {/* 第一行：标题和按钮 */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: isFullscreen && files.total > 0 ? 2 : 0
+          }}
+        >
+          <Typography variant="subtitle1">{t('textSplit.uploadedDocuments', { count: files.total })}</Typography>
 
-        {/* 批量生成GA对按钮 */}
-        {files.total > 0 && (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {/* 全选/取消全选按钮 */}
-            {array.length === files.total ? (
+          {/* 批量生成GA对按钮 */}
+          {files.total > 0 && (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {/* 全选/取消全选按钮 */}
+              {array.length === files.total ? (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<SelectAllIcon />}
+                  onClick={handleDeselectAll}
+                  disabled={loading}
+                >
+                  {t('gaPairs.deselectAllFiles')}
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<DeselectAllIcon />}
+                  onClick={handleSelectAll}
+                  disabled={loading}
+                >
+                  {t('gaPairs.selectAllFiles')}
+                </Button>
+              )}
+
+              {/* 批量生成GA对按钮 */}
               <Button
-                variant="outlined"
+                variant="contained"
+                color="primary"
                 size="small"
-                startIcon={<SelectAllIcon />}
-                onClick={handleDeselectAll}
+                startIcon={<PsychologyIcon />}
+                onClick={openBatchGenDialog}
                 disabled={loading}
               >
-                {t('gaPairs.deselectAllFiles')}
+                {t('gaPairs.batchGenerate')}
               </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<DeselectAllIcon />}
-                onClick={handleSelectAll}
-                disabled={loading}
-              >
-                {t('gaPairs.selectAllFiles')}
-              </Button>
-            )}
+            </Box>
+          )}
+        </Box>
 
-            {/* 批量生成GA对按钮 */}
-            <Button
-              variant="contained"
-              color="primary"
+        {/* 第二行：搜索框 - 在全屏展示时显示，或者有搜索内容时显示 */}
+        {isFullscreen && (files.total > 0 || searchTerm) && (
+          <Box>
+            <TextField
               size="small"
-              startIcon={<PsychologyIcon />}
-              onClick={openBatchGenDialog}
-              disabled={loading}
-            >
-              {t('gaPairs.batchGenerate')}
-            </Button>
+              placeholder={t('textSplit.searchFiles', { defaultValue: '搜索文件名...' })}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={handleClearSearch} edge="end">
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ width: '100%', maxWidth: 400 }}
+            />
+            {(searchTerm || searchLoading) && (
+              <Typography variant="body2" color="textSecondary" sx={{ mt: 1, textAlign: 'center' }}>
+                {searchLoading
+                  ? '搜索中...'
+                  : searchTerm
+                    ? t('textSplit.searchResults', {
+                        count: files?.data?.length || 0,
+                        total: files.total,
+                        defaultValue: `找到 ${files?.data?.length || 0} 个文件（共 ${files.total} 个）`
+                      })
+                    : null}
+              </Typography>
+            )}
           </Box>
         )}
       </Box>
@@ -430,7 +519,30 @@ export default function FileList({
       ) : files.total === 0 ? (
         <Box sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="body2" color="textSecondary">
-            {t('textSplit.noFilesUploaded')}
+            {searchTerm
+              ? // 搜索无结果
+                t('textSplit.noSearchResults', {
+                  searchTerm,
+                  defaultValue: `未找到包含 "${searchTerm}" 的文件`
+                })
+              : // 真的没有上传文件
+                t('textSplit.noFilesUploaded', {
+                  defaultValue: '暂未上传文件'
+                })}
+          </Typography>
+        </Box>
+      ) : !files?.data || files.data.length === 0 ? (
+        <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="textSecondary">
+            {searchTerm
+              ? // 搜索有结果但当前页没数据
+                t('textSplit.noResultsOnCurrentPage', {
+                  defaultValue: '当前页面没有搜索结果，请返回第一页查看'
+                })
+              : // 当前页没数据但总数不为0
+                t('textSplit.noDataOnCurrentPage', {
+                  defaultValue: '当前页面没有数据'
+                })}
           </Typography>
         </Box>
       ) : (
