@@ -287,6 +287,22 @@ https://docs.easy-dataset.com/geng-duo/lian-xi-wo-men
 
 This project is licensed under the AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
 
+## Citation
+
+If this work is helpful, please kindly cite as:
+
+```bibtex
+@misc{miao2025easydataset,
+  title={Easy Dataset: A Unified and Extensible Framework for Synthesizing LLM Fine-Tuning Data from Unstructured Documents}, 
+  author={Ziyang Miao and Qiyu Sun and Jingyuan Wang and Yuchen Gong and Yaowei Zheng and Shiqi Li and Richong Zhang},
+  year={2025},
+  eprint={2507.04009},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2507.04009}
+}
+```
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ConardLi/easy-dataset&type=Date)](https://www.star-history.com/#ConardLi/easy-dataset&Date)
