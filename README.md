@@ -8,6 +8,9 @@
 <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" alt="AGPL 3.0 License"/>
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/ConardLi/easy-dataset">
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/ConardLi/easy-dataset">
+<a href="https://arxiv.org/abs/2507.04009v1" target="_blank">
+  <img src="https://img.shields.io/badge/arXiv-2507.04009-b31b1b.svg" alt="arXiv:2507.04009">
+</a>
 
 <a href="https://trendshift.io/repositories/13944" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13944" alt="ConardLi%2Feasy-dataset | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
@@ -258,6 +261,7 @@ docker run -d \
 
 - View the demo video of this project: [Easy Dataset Demo Video](https://www.bilibili.com/video/BV1y8QpYGE57/)
 - For detailed documentation on all features and APIs, visit our [Documentation Site](https://docs.easy-dataset.com/ed/en)
+- View the paper of this project: [Easy Dataset: A Unified and Extensible Framework for Synthesizing LLM Fine-Tuning Data from Unstructured Documents](https://arxiv.org/abs/2507.04009v1)
 
 ## Community Practice
 
@@ -286,6 +290,22 @@ https://docs.easy-dataset.com/geng-duo/lian-xi-wo-men
 ## License
 
 This project is licensed under the AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Citation
+
+If this work is helpful, please kindly cite as:
+
+```bibtex
+@misc{miao2025easydataset,
+  title={Easy Dataset: A Unified and Extensible Framework for Synthesizing LLM Fine-Tuning Data from Unstructured Documents},
+  author={Ziyang Miao and Qiyu Sun and Jingyuan Wang and Yuchen Gong and Yaowei Zheng and Shiqi Li and Richong Zhang},
+  year={2025},
+  eprint={2507.04009},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2507.04009}
+}
+```
 
 ## Star History
 
