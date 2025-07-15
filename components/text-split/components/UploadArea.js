@@ -32,19 +32,19 @@ export default function UploadArea({
   const inputRef = useRef(null);
 
   // 拖拽进入
-  const handleDragOver = (e) => {
+  const handleDragOver = e => {
     e.preventDefault();
     e.stopPropagation();
     if (!dragActive) setDragActive(true);
   };
   // 拖拽离开
-  const handleDragLeave = (e) => {
+  const handleDragLeave = e => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
   };
   // 拖拽释放
-  const handleDrop = (e) => {
+  const handleDrop = e => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -75,7 +75,7 @@ export default function UploadArea({
           borderColor: alpha(theme.palette.primary.main, 0.3)
         },
         cursor: uploading || !selectedModel?.id ? 'not-allowed' : 'pointer',
-        position: 'relative',
+        position: 'relative'
       }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -89,28 +89,35 @@ export default function UploadArea({
             left: 0,
             width: '100%',
             height: '100%',
-            bgcolor: alpha(theme.palette.background.paper, 0.9),
-            backdropFilter: 'blur(4px)',
+            bgcolor: alpha(theme.palette.primary.main, 0.3),
             zIndex: 10,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             pointerEvents: 'none',
             borderRadius: 2,
-            border: `2px dashed ${theme.palette.primary.main}`,
+            border: `3px solid ${theme.palette.primary.main}`,
+            backdropFilter: 'blur(2px)'
           }}
         >
-          <Typography
-            variant="h5"
-            color="primary"
+          <Box
             sx={{
-              fontWeight: 600,
-              textShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.2)}`,
-              textAlign: 'center'
+              bgcolor: 'rgba(255, 255, 255, 0.9)',
+              p: 3,
+              borderRadius: 1,
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              border: `1px solid ${theme.palette.primary.main}`
             }}
           >
-            {t('textSplit.dragToUpload')}
-          </Typography>
+            <UploadFileIcon color="primary" sx={{ fontSize: 40, mb: 1 }} />
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+              {t('textSplit.dragToUpload', { defaultValue: '拖拽文件到此处上传' })}
+            </Typography>
+          </Box>
         </Box>
       )}
       <Typography variant="subtitle1" gutterBottom>

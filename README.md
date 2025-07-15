@@ -8,6 +8,11 @@
 <img src="https://img.shields.io/badge/license-AGPL--3.0-green.svg" alt="AGPL 3.0 License"/>
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/ConardLi/easy-dataset">
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/ConardLi/easy-dataset">
+<a href="https://arxiv.org/abs/2507.04009v1" target="_blank">
+  <img src="https://img.shields.io/badge/arXiv-2507.04009-b31b1b.svg" alt="arXiv:2507.04009">
+</a>
+
+<a href="https://trendshift.io/repositories/13944" target="_blank"><img src="https://trendshift.io/api/badge/repositories/13944" alt="ConardLi%2Feasy-dataset | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
 **A powerful tool for creating fine-tuning datasets for Large Language Models**
 
@@ -117,28 +122,71 @@ https://github.com/user-attachments/assets/6ddb1225-3d1b-4695-90cd-aa4cb01376a8
 
 4. Open your browser and visit `http://localhost:1717`
 
-### Build with Local Dockerfile
-
-If you want to build the image yourself, you can use the Dockerfile in the project root:
+### Using the Official Docker Image
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/ConardLi/easy-dataset.git
-   cd easy-dataset
-   ```
+
+```bash
+git clone https://github.com/ConardLi/easy-dataset.git
+cd easy-dataset
+```
+
+2. Modify the `docker-compose.yml` file:
+
+```yml
+services:
+  easy-dataset:
+    image: ghcr.io/conardli/easy-dataset
+    container_name: easy-dataset
+    ports:
+      - '1717:1717'
+    volumes:
+      - ${LOCAL_DB_PATH}:/app/local-db
+      - ${LOCAL_PRISMA_PATH}:/app/prisma
+    restart: unless-stopped
+```
+
+> **Note:** Replace `{YOUR_LOCAL_DB_PATH}` and `{LOCAL_PRISMA_PATH}` with the actual paths where you want to store the local database. It is recommended to use the `local-db` and `prisma` folders in the current code repository directory to maintain consistency with the database paths when starting via NPM.
+
+3. Start with docker-compose:
+
+```bash
+docker-compose up -d
+```
+
+4. Open a browser and visit `http://localhost:1717`
+
+### Building with a Local Dockerfile
+
+If you want to build the image yourself, use the Dockerfile in the project root directory:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/ConardLi/easy-dataset.git
+cd easy-dataset
+```
+
 2. Build the Docker image:
-   ```bash
-   docker build -t easy-dataset .
-   ```
+
+```bash
+docker build -t easy-dataset .
+```
+
 3. Run the container:
 
-   ```bash
-   docker run -d -p 1717:1717 -v {YOUR_LOCAL_DB_PATH}:/app/local-db --name easy-dataset easy-dataset
-   ```
+```bash
+docker run -d \
+  -p 1717:1717 \
+  -v {YOUR_LOCAL_DB_PATH}:/app/local-db \
+  -v {LOCAL_PRISMA_PATH}:/app/prisma \
+  --name easy-dataset \
+  easy-dataset
+```
 
-   **Note:** Please replace `{YOUR_LOCAL_DB_PATH}` with the actual path where you want to store the local database.
+> **Note:** Replace `{YOUR_LOCAL_DB_PATH}` and `{LOCAL_PRISMA_PATH}` with the actual paths where you want to store the local database. It is recommended to use the `local-db` and `prisma` folders in the current code repository directory to maintain consistency with the database paths when starting via NPM.
 
-4. Open your browser and visit `http://localhost:1717`
+4. Open a browser and visit `http://localhost:1717`
 
 ## How to Use
 
@@ -209,66 +257,18 @@ If you want to build the image yourself, you can use the Dockerfile in the proje
 4. Add custom system prompts as needed;
 5. Export your dataset
 
-## Project Structure
-
-```
-easy-dataset/
-├── app/                                # Next.js application directory
-│   ├── api/                            # API routes
-│   │   ├── llm/                        # LLM API integration
-│   │   │   ├── ollama/                 # Ollama API integration
-│   │   │   └── openai/                 # OpenAI API integration
-│   │   ├── projects/                   # Project management API
-│   │   │   ├── [projectId]/            # Project-specific operations
-│   │   │   │   ├── chunks/             # Text chunk operations
-│   │   │   │   ├── datasets/           # Dataset generation and management
-│   │   │   │   ├── generate-questions/ # Batch question generation
-│   │   │   │   ├── questions/          # Question management
-│   │   │   │   └── split/              # Text splitting operations
-│   │   │   └── user/                   # User-specific project operations
-│   ├── projects/                       # Frontend project pages
-│   │   └── [projectId]/                # Project-specific pages
-│   │       ├── datasets/               # Dataset management UI
-│   │       ├── questions/              # Question management UI
-│   │       ├── settings/               # Project settings UI
-│   │       └── text-split/             # Text processing UI
-│   └── page.js                         # Homepage
-├── components/                         # React components
-│   ├── datasets/                       # Dataset-related components
-│   ├── home/                           # Homepage components
-│   ├── projects/                       # Project management components
-│   ├── questions/                      # Question management components
-│   └── text-split/                     # Text processing components
-├── lib/                                # Core libraries and tools
-│   ├── db/                             # Database operations
-│   ├── i18n/                           # Internationalization
-│   ├── llm/                            # LLM integration
-│   │   ├── common/                     # Common LLM tools
-│   │   ├── core/                       # Core LLM clients
-│   │   └── prompts/                    # Prompt templates
-│   │       ├── answer.js               # Answer generation prompts (Chinese)
-│   │       ├── answerEn.js             # Answer generation prompts (English)
-│   │       ├── question.js             # Question generation prompts (Chinese)
-│   │       ├── questionEn.js           # Question generation prompts (English)
-│   │       └── ... other prompts
-│   └── text-splitter/                  # Text splitting tools
-├── locales/                            # Internationalization resources
-│   ├── en/                             # English translations
-│   └── zh-CN/                          # Chinese translations
-├── public/                             # Static resources
-│   └── imgs/                           # Image resources
-└── local-db/                           # Local file database
-    └── projects/                       # Project data storage
-```
-
 ## Documentation
 
 - View the demo video of this project: [Easy Dataset Demo Video](https://www.bilibili.com/video/BV1y8QpYGE57/)
 - For detailed documentation on all features and APIs, visit our [Documentation Site](https://docs.easy-dataset.com/ed/en)
+- View the paper of this project: [Easy Dataset: A Unified and Extensible Framework for Synthesizing LLM Fine-Tuning Data from Unstructured Documents](https://arxiv.org/abs/2507.04009v1)
 
 ## Community Practice
 
-[Easy Dataset × LLaMA Factory: Enabling LLMs to Efficiently Learn Domain Knowledge](https://buaa-act.feishu.cn/wiki/GVzlwYcRFiR8OLkHbL6cQpYin7g)
+- [Easy Dataset × LLaMA Factory: Enabling LLMs to Efficiently Learn Domain Knowledge](https://buaa-act.feishu.cn/wiki/GVzlwYcRFiR8OLkHbL6cQpYin7g)
+- [Easy Dataset Practical Guide: How to Build High-Quality Datasets?](https://www.bilibili.com/video/BV1MRMnz1EGW)
+- [Interpretation of Key Feature Updates in Easy Dataset](https://www.bilibili.com/video/BV1fyJhzHEb7/)
+- [Foundation Models Fine-tuning Datasets: Basic Knowledge Popularization](https://docs.easy-dataset.com/zhi-shi-ke-pu)
 
 ## Contributing
 
@@ -290,6 +290,22 @@ https://docs.easy-dataset.com/geng-duo/lian-xi-wo-men
 ## License
 
 This project is licensed under the AGPL 3.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Citation
+
+If this work is helpful, please kindly cite as:
+
+```bibtex
+@misc{miao2025easydataset,
+  title={Easy Dataset: A Unified and Extensible Framework for Synthesizing LLM Fine-Tuning Data from Unstructured Documents},
+  author={Ziyang Miao and Qiyu Sun and Jingyuan Wang and Yuchen Gong and Yaowei Zheng and Shiqi Li and Richong Zhang},
+  year={2025},
+  eprint={2507.04009},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2507.04009}
+}
+```
 
 ## Star History
 

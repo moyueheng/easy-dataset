@@ -42,6 +42,25 @@ export default function useDatasetDetails(projectId, datasetId) {
     return storedValue !== null ? storedValue === 'true' : false;
   });
 
+  // 异步获取Token数量
+  const fetchTokenCount = async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/datasets/${datasetId}/token-count`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.answerTokens !== undefined) {
+          setAnswerTokens(data.answerTokens);
+        }
+        if (data.cotTokens !== undefined) {
+          setCotTokens(data.cotTokens);
+        }
+      }
+    } catch (error) {
+      console.error('获取Token数量失败:', error);
+      // Token加载失败不阻塞主界面或显示错误提示
+    }
+  };
+
   // 获取数据集详情
   const fetchDatasets = async () => {
     try {
@@ -54,13 +73,8 @@ export default function useDatasetDetails(projectId, datasetId) {
       setDatasetsAllCount(data.total);
       setDatasetsConfirmCount(data.confirmedCount);
 
-      // 设置 Token 数量
-      if (data.answerTokens !== undefined) {
-        setAnswerTokens(data.answerTokens);
-      }
-      if (data.cotTokens !== undefined) {
-        setCotTokens(data.cotTokens);
-      }
+      // 数据加载完成后，异步获取Token数量
+      fetchTokenCount();
     } catch (error) {
       setSnackbar({
         open: true,
@@ -247,6 +261,8 @@ export default function useDatasetDetails(projectId, datasetId) {
 
       // 优化成功后，重新查询数据以获取最新状态
       await fetchDatasets();
+      // 优化可能改变了文本内容，重新获取Token计数
+      fetchTokenCount();
 
       setSnackbar({
         open: true,
